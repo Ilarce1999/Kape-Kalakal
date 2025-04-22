@@ -1,15 +1,16 @@
 import OrderModel from '../models/OrderModel.js'
-import { nanoid } from "nanoid";
 
-//Drinks Array
-    let drinks = [
-    {id:nanoid(), drinkName:'cappucino', size:'large', price:'140'},
-    {id:nanoid(), drinkName:'espresso', size:'medium', price:'120'}
-];  
 
-export const getAllDrinks = async (req, res) =>{
-    res.status(200).json({ drinks })
+
+    export const getAllDrinks = async (req, res) => {
+    try {
+        const orders = await OrderModel.find({});
+        res.status(200).json({ drinks: orders });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error', error: error.message });
+    }
 };
+
 
 export const createDrink = async (req, res) => {
     const { drinkName, size, price } = req.body;
@@ -22,47 +23,61 @@ export const createDrink = async (req, res) => {
   };
   
 
-export const getDrink = async (req, res) => {
+  export const getDrink = async (req, res) => {
     const { id } = req.params;
-    const drink = drinks.find((drink) => drink.id === id);
-    if(!drink){
-       {/* } throw new Error('no job with that id'); */}
-        return res.status(404).json({msg: `no drink with id ${id}`});
-    }
 
-    res.status(200).json({ drink });
+    try {
+        const drink = await OrderModel.findById(id);
+
+        if (!drink) {
+            return res.status(404).json({ msg: `No drink with id ${id}` });
+        }
+
+        res.status(200).json({ drink });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error', error: error.message });
+    }
 };
 
+
 export const editDrink = async (req, res) => {
-    const { drinkName, size, price} = req.body;
-    if(!drinkName || !size || !price)
-    {
-        return res.status(400).json({ msg: 'please provide drink name, size and price' });
+    const { drinkName, size, price } = req.body;
+    const { id } = req.params;
+
+    if (!drinkName || !size || !price) {
+        return res.status(400).json({ msg: 'Please provide drink name, size, and price' });
     }
-      const { id } = req.params;
-      const drink = drinks.find((drink) => drink.id === id);
-      if (!drink)
-      {
-        return res.status(404).json({ msg: `no job with id ${id}` });
 
-      }
+    try {
+        const updatedDrink = await OrderModel.findByIdAndUpdate(
+            id,
+            { drinkName, size, price },
+            { new: true, runValidators: true }
+        );
 
-      drink.drinkName = drinkName;
-      drink.size = size;
-      drink.price = price;
-      res.status(200).json({ msg: 'order modified', drink});
+        if (!updatedDrink) {
+            return res.status(404).json({ msg: `No drink with id ${id}` });
+        }
+
+        res.status(200).json({ msg: 'Order modified', drink: updatedDrink });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error', error: error.message });
+    }
 };
 
 export const deleteDrink = async (req, res) => {
     const { id } = req.params;
-    const drink = drinks.find((drink) => drink.id === id);
-    if(!drink)
-    {
-        return res.status(404).json({ msg: `no job with id ${id}` });
+
+    try {
+        const deletedDrink = await OrderModel.findByIdAndDelete(id);
+
+        if (!deletedDrink) {
+            return res.status(404).json({ msg: `No drink with id ${id}` });
+        }
+
+        res.status(200).json({ msg: 'Drink deleted' });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error', error: error.message });
     }
-
-    const newDrink = drinks.filter((drink) => drink.id !== id);
-    drinks = newDrink;
-
-    res.status(200).json({ msg: 'drink deleted'});
 };
+
