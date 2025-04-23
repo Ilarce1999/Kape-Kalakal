@@ -5,9 +5,13 @@ const app = express();
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 
-
 // routers
 import drinkRouter from './routes/drinkRouter.js';
+import authRouter from './routes/authRouter.js'
+
+// middleware
+import errorHandlerMiddleware from './middleware/errorHandlerMiddleware.js';
+
 if(process.env.NODE_ENV=== 'development') {
     app.use(morgan('dev'));
 }
@@ -24,10 +28,14 @@ app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
-app.post('/', (req, res) => {
-  console.log(req);
-  res.json({message: 'data received', data: req.body});
-});
+{/* app.post('/api/v1/test', 
+
+    validateTest,
+ (req, res) => {
+  const { name } = req.body;
+
+  res.json({ message: `hello ${name}`});
+}); */}
 
 {/* }
 //GET ALL DRINKS
@@ -48,12 +56,15 @@ app.delete('/api/v1/drinks/:id'); */}
 // Not Found Middleware (* --> To apply all the request) When a request is made to a route that does not exist. 
 // It is designed to handle requests for non-existent routes.
 
-app.use('/api/v1/drinks', drinkRouter)
+app.use('/api/v1/drinks', drinkRouter);
+app.use('/api/v1/auth', authRouter);
 
 app.use('*', (req, res) => {
     res.status(404).json({ msg: 'not found'}); 
     
 });
+
+app.use(errorHandlerMiddleware);
 
 //Error Middleware - error middleware is a catch-all for handling unexpected errors that occur during request processing
 app.use((err, req, res, next) => {

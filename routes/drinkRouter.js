@@ -8,8 +8,10 @@ import {getAllDrinks,
         deleteDrink
 
 } from '../controllers/drinkController.js';
+import { validateDrinkOrder, validateIdParam } from '../middleware/validationMiddleware.js';
 
-router.route('/').get(getAllDrinks).post(createDrink)
-router.route('/:id').get(getDrink).patch(editDrink).delete(deleteDrink)
+router.route('/').get(getAllDrinks).post(validateDrinkOrder, createDrink)
+router.route('/:id').get(validateIdParam, getDrink).patch(validateDrinkOrder, validateIdParam, editDrink).delete(validateIdParam, 
+        deleteDrink)
 
 export default router;
