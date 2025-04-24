@@ -1,5 +1,5 @@
 export const SIZE = {
-    REGULAR: 'regular',
+    SMALL: 'small',
     MEDIUM: 'medium',
     LARGE: 'large',
 };

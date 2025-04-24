@@ -4,6 +4,7 @@ import express from 'express';
 const app = express();
 import morgan from 'morgan';
 import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
 
 // routers
 import drinkRouter from './routes/drinkRouter.js';
@@ -11,6 +12,7 @@ import authRouter from './routes/authRouter.js'
 
 // middleware
 import errorHandlerMiddleware from './middleware/errorHandlerMiddleware.js';
+import { authenticateUser } from './middleware/authMiddleware.js';
 
 if(process.env.NODE_ENV=== 'development') {
     app.use(morgan('dev'));
@@ -22,6 +24,7 @@ if(process.env.NODE_ENV=== 'development') {
     {id:nanoid(), drinkName:'espresso', size:'medium', price:'120'}
 ]; */}
 
+app.use(cookieParser());
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -56,7 +59,7 @@ app.delete('/api/v1/drinks/:id'); */}
 // Not Found Middleware (* --> To apply all the request) When a request is made to a route that does not exist. 
 // It is designed to handle requests for non-existent routes.
 
-app.use('/api/v1/drinks', drinkRouter);
+app.use('/api/v1/drinks', authenticateUser, drinkRouter);
 app.use('/api/v1/auth', authRouter);
 
 app.use('*', (req, res) => {

@@ -1,5 +1,4 @@
-import mongoose from "mongoose";
-import { SIZE } from "../utils/constants.js";
+import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
   drinkName: {
@@ -7,13 +6,15 @@ const OrderSchema = new mongoose.Schema({
   },
   size: {
     type: String,
-    enum: Object.values(SIZE),
-    default: 'regular',
+    enum: ['small', 'medium', 'large'], // Replace with your actual size values
+    default: 'small',
   },
-}, 
-   {
-    timestamps:true
-   }
-);
+  orderedBy: {
+    type: mongoose.Types.ObjectId,
+    ref: 'User'  // Ensure this references your 'User' model
+  }
+}, {
+  timestamps: true
+});
 
 export default mongoose.model('Order', OrderSchema);
