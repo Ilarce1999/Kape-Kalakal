@@ -1,5 +1,5 @@
 import { body, param, validationResult } from 'express-validator';
-import { BadRequestError, NotFoundError } from '../errors/customErrors.js';
+import { BadRequestError, NotFoundError, UnauthenticatedError, UnauthorizedError } from '../errors/customErrors.js';
 import { SIZE } from '../utils/constants.js';
 import mongoose from 'mongoose';
 import OrderModel from '../models/OrderModel.js';
@@ -7,28 +7,25 @@ import User from '../models/UserModel.js';
 
 // Middleware to handle validation errors
 const withValidationErrors = (validateValues) => {
-  return [
-    ...validateValues,
-    async (req, res, next) => {
-      try {
+    return[
+      validateValues,
+      (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
           const errorMessages = errors.array().map((error) => error.msg);
-          // Check if any error message indicates a NotFoundError
-          const notFoundError = errorMessages.find((msg) =>
-            msg.toLowerCase().includes('no drink')
-          );
-          if (notFoundError) {
-            return next(new NotFoundError(notFoundError));
+          if (errorMessages[0].startsWith('no order')) {
+            throw new NotFoundError(errorMessages);
+
           }
-          return next(new BadRequestError(errorMessages.join(', ')));
+          if (errorMessages[0].startsWith('not authorized')){
+            throw new UnauthorizedError('not authorized to access this route');
+          }
+              throw new BadRequestError(errorMessages);
         }
+
         next();
-      } catch (err) {
-        next(err);
       }
-    },
-  ];
+    ]
 };
 
 // Validation for creating or updating a drink order
@@ -41,16 +38,17 @@ export const validateDrinkOrder = withValidationErrors([
 
 // Validation for MongoDB ObjectId parameter
 export const validateIdParam = withValidationErrors([
-  param('id').custom(async (value) => {
-    if (!mongoose.Types.ObjectId.isValid(value)) {
-      throw new BadRequestError('Invalid MongoDB id');
-    }
+  param('id').custom(async (value, { req }) => {
+    const isValidMongoId = mongoose.Types.ObjectId.isValid(value);
+    if (!isValidMongoId) throw new BadRequestError('invalid MongoDB id');
+    const order = await OrderModel.findById(value);
+    if(!order) throw new NotFoundError(`no order with id ${value}`);
 
-    const drink = await OrderModel.findById(value);
-    if (!drink) {
-      throw new NotFoundError(`No drink with id ${value}`);
-    }
-    return true;
+    //console.log(order);
+    const isAdmin = req.user.role === 'admin'
+    const isOwner = req.user.userId === order.orderedBy.toString()
+    if(!isAdmin && !isOwner) throw new UnauthorizedError('not authorized to access this route')
+
   }),
 ]);
 
