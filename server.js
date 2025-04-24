@@ -8,7 +8,8 @@ import cookieParser from 'cookie-parser';
 
 // routers
 import drinkRouter from './routes/drinkRouter.js';
-import authRouter from './routes/authRouter.js'
+import authRouter from './routes/authRouter.js';
+import userRouter from './routes/userRouter.js';
 
 // middleware
 import errorHandlerMiddleware from './middleware/errorHandlerMiddleware.js';
@@ -60,6 +61,7 @@ app.delete('/api/v1/drinks/:id'); */}
 // It is designed to handle requests for non-existent routes.
 
 app.use('/api/v1/drinks', authenticateUser, drinkRouter);
+app.use('/api/v1/users', authenticateUser, userRouter);
 app.use('/api/v1/auth', authRouter);
 
 app.use('*', (req, res) => {
