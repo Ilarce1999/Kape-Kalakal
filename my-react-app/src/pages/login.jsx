@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, Form, redirect, useNavigation } from 'react-router-dom'; 
+import { Link, useLocation, Form, redirect, useNavigation, useActionData } from 'react-router-dom'; 
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import customFetch from '../../../utils/customFetch.js';
@@ -7,6 +7,12 @@ import customFetch from '../../../utils/customFetch.js';
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
+  const errors = { msg: '' };
+
+  if (data.password.length < 3) {
+    errors.msg = 'Password too short';
+    return errors;
+  }
 
   try {
     const response = await customFetch.post('/auth/login', data);
@@ -29,6 +35,9 @@ const Login = () => {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
+  // Get errors from action data
+  const errors = useActionData();
+
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     if (query.get('success') === 'true' && !toastShown.current) {
@@ -45,13 +54,16 @@ const Login = () => {
     button: { width: '100%', padding: '12px', backgroundColor: hover ? '#A0522D' : '#8B4513', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1rem', cursor: 'pointer', marginTop: '10px', transition: 'background-color 0.3s ease' },
     registerText: { marginTop: '20px', textAlign: 'center', fontSize: '0.9rem' },
     registerLink: { color: '#8B4513', textDecoration: 'none', fontWeight: 'bold', marginLeft: '5px' },
+    errorMessage: { color: 'red', fontSize: '0.9rem', textAlign: 'center', marginTop: '10px' }
   };
 
   return (
     <div style={styles.wrapper}>
       <div style={styles.card}>
         <div style={styles.title}>Login</div>
-        <Form method="post"> 
+        <Form method="post">
+          {/* Display error message if exists */}
+          {errors?.msg && <p style={styles.errorMessage}>{errors.msg}</p>}
           <input name="email" type="email" placeholder="Email" style={styles.input} required />
           <input name="password" type="password" placeholder="Password" style={styles.input} required />
           <button

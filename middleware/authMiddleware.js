@@ -15,6 +15,7 @@ export const authenticateUser = async (req, res, next) => {
     req.user = { userId, role };
     next();
   } catch (error) {
+    console.error(error); // Log the error for debugging purposes
     return next(new UnauthenticatedError('Authentication invalid'));
   }
 };

@@ -22,28 +22,32 @@ export const register = async (req, res) => {
     res.status(StatusCodes.CREATED).json({ msg: 'user created' });
 };
 
-export const login = async (req, res) => {
-    const user = await User.findOne({ email: req.body.email });
-
-    const isValidUser = user && (await comparePassword(req.body.password, user.password));
-    if (!isValidUser) {
+export const login = async (req, res, next) => {
+    try {
+      const user = await User.findOne({ email: req.body.email });
+  
+      const isValidUser = user && (await comparePassword(req.body.password, user.password));
+      if (!isValidUser) {
         throw new UnauthenticatedError('invalid credentials');
-    }
-
-    const token = createJWT({ userId: user._id, role: user.role });
-
-    const OneDay = 1000 * 60 * 60 * 24;
-    res.cookie('token', token, {
+      }
+  
+      const token = createJWT({ userId: user._id, role: user.role });
+  
+      const OneDay = 1000 * 60 * 60 * 24;
+      res.cookie('token', token, {
         httpOnly: true,
         expires: new Date(Date.now() + OneDay),
         secure: process.env.NODE_ENV === 'production',
-    });
-
-    res.status(StatusCodes.OK).json({
+      });
+  
+      res.status(StatusCodes.OK).json({
         msg: 'user logged in',
         user: { email: user.email, role: user.role },
-    });
-};
+      });
+    } catch (error) {
+      next(error); // This sends it to your error-handling middleware
+    }
+  };
 
 export const logout = (req, res) => {
     res.cookie('token', 'logout', {
