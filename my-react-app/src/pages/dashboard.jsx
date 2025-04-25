@@ -210,12 +210,6 @@ const Dashboard = () => {
           <img src={heroImages[heroIndex].src} alt="hero" style={styles.heroImage} />
           <div style={styles.heroText}>{heroImages[heroIndex].text}</div>
           <div style={styles.heroButtons}>
-            <Form method="post" action="/register">
-              <button type="submit" style={styles.heroButton}>Register</button>
-            </Form>
-            <Form method="post" action="/login">
-              <button type="submit" style={styles.heroButton}>Login</button>
-            </Form>
           </div>
         </div>
 
