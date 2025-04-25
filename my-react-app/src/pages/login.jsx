@@ -2,6 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import customFetch from '../../../utils/customFetch.js';
+
+
+export const action = async ({request}) => {
+    return null;
+    
+}
 
 const Login = () => {
   const [email, setEmail] = useState('');

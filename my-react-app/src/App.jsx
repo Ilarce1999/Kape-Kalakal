@@ -11,7 +11,8 @@ import { Landing,
  } from './pages';  
 
 
- import { action as registerAction } from './pages/register'
+ import { action as registerAction } from './pages/register';
+ import { action as loginAction } from './pages/login';
  
 
 const router = createBrowserRouter([
@@ -45,6 +46,7 @@ const router = createBrowserRouter([
   {
     path: '/menu',
     element: <Menu />,  
+    action:loginAction
   },
   
   {
