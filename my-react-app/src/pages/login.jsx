@@ -1,9 +1,23 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [hover, setHover] = useState(false);
+  const location = useLocation();
+  const toastShown = useRef(false); // Ref to prevent multiple toasts
+
+  // Only show the success toast if the "success" query param is in the URL
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    if (query.get('success') === 'true' && !toastShown.current) {
+      toast.success('Registration successful! You can now log in.');
+      toastShown.current = true; // Set ref to true after showing the toast
+    }
+  }, [location]);
 
   const styles = {
     wrapper: {
@@ -39,7 +53,7 @@ const Login = () => {
     button: {
       width: '100%',
       padding: '12px',
-      backgroundColor: '#8B4513',
+      backgroundColor: hover ? '#A0522D' : '#8B4513',
       color: 'white',
       border: 'none',
       borderRadius: '8px',
@@ -47,9 +61,6 @@ const Login = () => {
       cursor: 'pointer',
       marginTop: '10px',
       transition: 'background-color 0.3s ease',
-    },
-    buttonHover: {
-      backgroundColor: '#A0522D',
     },
     registerText: {
       marginTop: '20px',
@@ -63,8 +74,6 @@ const Login = () => {
       marginLeft: '5px',
     },
   };
-
-  const [hover, setHover] = useState(false);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -111,4 +120,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Login; 

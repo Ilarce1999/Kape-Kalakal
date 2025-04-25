@@ -1,17 +1,29 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import './index.css'; // Import the global styles
-import { Dashboard,
+import { Landing,
          Menu,
          Login,
          Register,
          AboutUs,
          Settings,
+         Error,
+         Dashboard,
  } from './pages';  
+
+
+ import { action as registerAction } from './pages/register'
+ 
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Dashboard />,  
+    element: <Landing />,  
+    //element: <Dashboard />,  
+  },
+
+  {
+    path: '/error',
+    element: <Error/>,
   },
 
   {
@@ -20,8 +32,14 @@ const router = createBrowserRouter([
   },
 
   {
+    path: '/dashboard',
+    element: <Dashboard />,  
+  },
+
+  {
     path: '/register',
     element: <Register />,
+    action:registerAction
   },
 
   {

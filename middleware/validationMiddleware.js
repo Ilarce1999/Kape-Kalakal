@@ -60,10 +60,10 @@ export const validateRegisterInput = withValidationErrors([
   .custom(async(email) => {
      const user = await User.findOne({email})
      if (user){
-      throw new BadRequestError('email already exists');
+      throw new BadRequestError('Email already exists.');
      }
   }),
-  body('password').notEmpty().withMessage('password is required').isLength({min:8}).withMessage('password must be at least 8 characters long'),
+  body('password').notEmpty().withMessage('password is required').isLength({min:8}).withMessage(' Password must be at least 8 characters long'),
   body('location').notEmpty().withMessage('location is required'),
 ]);
 

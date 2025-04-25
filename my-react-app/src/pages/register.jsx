@@ -1,11 +1,51 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import {
+  Form,
+  redirect,
+  useNavigation,
+  useActionData,
+  Link,
+} from 'react-router-dom';
+import customFetch from '../../../utils/customFetch.js';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
+// ACTION FUNCTION
+export const action = async ({ request }) => {
+  const formData = await request.formData();
+  const data = Object.fromEntries(formData);
+
+  try {
+    const response = await customFetch.post('/auth/register', data);
+
+    if (response.status === 201) {
+      // ✅ Redirect with success query param
+      return redirect('/login?success=true');
+    }
+  } catch (error) {
+    return {
+      error: error?.response?.data?.msg || 'Something went wrong. Please try again.',
+    };
+  }
+};
+
+// COMPONENT
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [location, setLocation] = useState('');
   const [hover, setHover] = useState(false);
+
+  const actionData = useActionData();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === 'submitting';
+
+  useEffect(() => {
+    if (actionData?.error) {
+      toast.error(actionData.error);
+    }
+  }, [actionData]);
 
   const styles = {
     wrapper: {
@@ -46,9 +86,10 @@ const Register = () => {
       border: 'none',
       borderRadius: '8px',
       fontSize: '1rem',
-      cursor: 'pointer',
+      cursor: isSubmitting ? 'not-allowed' : 'pointer',
       marginTop: '10px',
-      transition: 'background-color 0.3s ease',
+      opacity: isSubmitting ? 0.7 : 1,
+      transition: 'background-color 0.3s ease, opacity 0.3s ease',
     },
     registerText: {
       marginTop: '20px',
@@ -65,41 +106,57 @@ const Register = () => {
 
   return (
     <div style={styles.wrapper}>
-      <div style={styles.card}>
+      <Form method="post" style={styles.card}>
         <h2 style={styles.title}>Create an Account</h2>
+
         <input
-          type="name"
-          placeholder="Name"
+          type="text"
+          name="name"
+          placeholder="Enter your name"
           value={name}
           style={styles.input}
           onChange={(e) => setName(e.target.value)}
         />
         <input
           type="email"
-          placeholder="Email"
+          name="email"
+          placeholder="Enter your email"
           value={email}
           style={styles.input}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="password"
-          placeholder="Password"
+          name="password"
+          placeholder="Enter your password"
           value={password}
           style={styles.input}
           onChange={(e) => setPassword(e.target.value)}
         />
+        <input
+          type="text"
+          name="location"
+          placeholder="Enter your location"
+          value={location}
+          style={styles.input}
+          onChange={(e) => setLocation(e.target.value)}
+        />
         <button
+          type="submit"
           style={styles.button}
+          disabled={isSubmitting}
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
         >
-          Register
+          {isSubmitting ? 'Submitting...' : 'Submit'}
         </button>
         <div style={styles.registerText}>
           Already have an account?
-          <Link to="/login" style={styles.registerLink}>Log in</Link>
+          <Link to="/login" style={styles.registerLink}>
+            Log in
+          </Link>
         </div>
-      </div>
+      </Form>
     </div>
   );
 };

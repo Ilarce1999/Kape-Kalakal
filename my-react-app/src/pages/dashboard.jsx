@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Form, redirect, useNavigation } from 'react-router-dom';
 
 const styles = {
   navbarWrapper: {
@@ -70,7 +70,7 @@ const styles = {
   },
   heroText: {
     position: 'absolute',
-    top: '50%',
+    top: '40%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
     color: 'white',
@@ -79,6 +79,25 @@ const styles = {
     textAlign: 'center',
     fontFamily: "'Playfair Display', serif",
     padding: '0 20px',
+  },
+  heroButtons: {
+    position: 'absolute',
+    top: '60%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    display: 'flex',
+    gap: '20px',
+  },
+  heroButton: {
+    padding: '12px 24px',
+    fontSize: '1rem',
+    borderRadius: '8px',
+    border: 'none',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    color: 'white',
+    backgroundColor: '#8B4513',
+    transition: 'background-color 0.3s ease',
   },
   contentContainer: {
     display: 'flex',
@@ -114,7 +133,7 @@ const styles = {
     backgroundColor: 'transparent',
     color: '#371D10',
     textDecoration: 'none',
-    border: '2px solid #8B4513',  // Added border line
+    border: '2px solid #8B4513',
     borderRadius: '8px',
     fontWeight: 'bold',
     transition: 'background-color 0.3s ease, color 0.3s ease',
@@ -166,29 +185,6 @@ const Dashboard = () => {
 
   return (
     <div style={{ position: 'relative', overflowX: 'hidden', minHeight: '100vh', backgroundColor: '#F5DEB3' }}>
-    {/* }  <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      >
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={i}
-            className="floating-bean"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 15}s`,
-            }}
-          />
-        ))}
-      </div> */}
-
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div style={styles.navbarWrapper}>
           <nav style={styles.navbar}>
@@ -204,7 +200,7 @@ const Dashboard = () => {
                 <Link to="/aboutus" style={getLinkStyle('/aboutus')} onClick={() => setMenuOpen(false)}>ABOUT US</Link>
                 <Link to="/menu" style={getLinkStyle('/menu')} onClick={() => setMenuOpen(false)}>MENU</Link>
                 <Link to="/settings" style={getLinkStyle('/settings')} onClick={() => setMenuOpen(false)}>SETTINGS</Link>
-                <Link to="/login" style={getLinkStyle('/login')} onClick={() => setMenuOpen(false)}>LOGOUT</Link>
+                <Link to="/login" style={getLinkStyle('/')} onClick={() => setMenuOpen(false)}>LOGOUT</Link>
               </div>
             )}
           </nav>
@@ -213,6 +209,14 @@ const Dashboard = () => {
         <div style={styles.heroSection}>
           <img src={heroImages[heroIndex].src} alt="hero" style={styles.heroImage} />
           <div style={styles.heroText}>{heroImages[heroIndex].text}</div>
+          <div style={styles.heroButtons}>
+            <Form method="post" action="/register">
+              <button type="submit" style={styles.heroButton}>Register</button>
+            </Form>
+            <Form method="post" action="/login">
+              <button type="submit" style={styles.heroButton}>Login</button>
+            </Form>
+          </div>
         </div>
 
         <div style={styles.contentContainer}>
