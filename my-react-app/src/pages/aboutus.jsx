@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import customFetch from '../../../utils/customFetch';
+import { toast } from 'react-toastify';
 
 const styles = {
   navbarWrapper: {
@@ -14,6 +16,7 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '20px 30px',
+    flexWrap: 'wrap',
   },
   navLeft: {
     color: 'white',
@@ -21,89 +24,23 @@ const styles = {
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
   },
-  navRight: {
+  navLinks: {
     display: 'flex',
+    gap: '20px',
     alignItems: 'center',
-    position: 'relative',
   },
-  burgerMenuWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    cursor: 'pointer',
-  },
-  burgerIcon: {
-    width: '30px',
-    height: '3px',
-    backgroundColor: 'white',
-    margin: '4px 0',
-  },
-  burgerMenu: {
-    position: 'absolute',
-    top: '70px',
-    right: '30px',
-    backgroundColor: '#8B4513',
-    borderRadius: '10px',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-    padding: '10px',
-    zIndex: 1001,
-  },
-  burgerMenuItem: {
+  navLink: {
     color: 'white',
-    padding: '10px 20px',
-    cursor: 'pointer',
-    textAlign: 'center',
     textDecoration: 'none',
-    display: 'block',
+    padding: '8px 16px',
     borderRadius: '8px',
     transition: 'background-color 0.3s ease',
+    fontWeight: '500',
   },
-  activeItem: {
+  activeLink: {
     backgroundColor: '#A0522D',
     fontWeight: 'bold',
   },
-  carouselWrapper: {
-    marginTop: '40px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: '20px',
-    flexDirection: 'column',
-  },
-  carouselContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  carouselImage: {
-    width: '500px',
-    height: '300px',
-    objectFit: 'cover',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-  },
-  arrowButton: {
-    backgroundColor: '#4B2E2E',
-    color: 'white',
-    fontWeight: 'bold',
-    border: 'none',
-    borderRadius: '50%',
-    width: '40px',
-    height: '40px',
-    cursor: 'pointer',
-    fontSize: '1.5rem',
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    zIndex: 2,
-  },
-  leftArrow: {
-    left: '-50px',
-  },
-  rightArrow: {
-    right: '-50px',
-  },
-
   footer: {
     backgroundColor: '#8B4513',
     color: 'white',
@@ -124,61 +61,44 @@ const styles = {
     textDecoration: 'none',
     transition: 'color 0.3s ease',
   },
-
 };
 
-const coffeeImages = [
-  { src: '/images/image1.jpg', name: 'Espresso' },
-  { src: '/images/image2.jpg', name: 'Cappuccino' },
-  { src: '/images/image3.jpg', name: 'Iced Latte' },
-  { src: '/images/image4.jpg', name: 'Flat White' },
-  { src: '/images/image5.jpg', name: 'Cortado' },
-];
-
-const aboutus = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [currentImage, setCurrentImage] = useState(0);
+const AboutUs = () => {
+  const navigate = useNavigate();
   const location = useLocation();
 
-  const handlePrev = () => {
-    setCurrentImage((prev) => (prev === 0 ? coffeeImages.length - 1 : prev - 1));
-  };
-
-  const handleNext = () => {
-    setCurrentImage((prev) => (prev === coffeeImages.length - 1 ? 0 : prev + 1));
-  };
-
   const getLinkStyle = (path) => ({
-    ...styles.burgerMenuItem,
-    ...(location.pathname === path ? styles.activeItem : {}),
+    ...styles.navLink,
+    ...(location.pathname === path ? styles.activeLink : {}),
   });
+
+  const logoutUser = async () => {
+    try {
+      await customFetch.get('/auth/logout');
+      toast.success('Logged out successfully');
+      navigate('/login');
+    } catch (error) {
+      toast.error('Error logging out');
+    }
+  };
 
   return (
     <div>
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
           <div style={styles.navLeft}>Kape Kalakal</div>
-
-          <div style={styles.burgerMenuWrapper} onClick={() => setMenuOpen(!menuOpen)}>
-            <div style={styles.burgerIcon}></div>
-            <div style={styles.burgerIcon}></div>
-            <div style={styles.burgerIcon}></div>
+          <div style={styles.navLinks}>
+            <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
+            <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
+            <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
+            <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
+            <span onClick={logoutUser} style={getLinkStyle('/')}>LOGOUT</span>
           </div>
-
-          {menuOpen && (
-            <div style={styles.burgerMenu}>
-              <Link to="/" style={getLinkStyle('/')} onClick={() => setMenuOpen(false)}>HOME</Link>
-              <Link to="/aboutus" style={getLinkStyle('/aboutus')} onClick={() => setMenuOpen(false)}>ABOUT US</Link>
-              <Link to="/menu" style={getLinkStyle('/menu')} onClick={() => setMenuOpen(false)}>MENU</Link>
-              <Link to="/settings" style={getLinkStyle('/settings')} onClick={() => setMenuOpen(false)}>SETTINGS</Link>
-              <Link to="/login" style={getLinkStyle('/login')} onClick={() => setMenuOpen(false)}>LOGOUT</Link>
-            </div>
-          )}
         </nav>
       </div>
 
       <div style={{ padding: '40px 30px' }}>
-        {/* First Row: Image Left, Text Right */}
+        {/* First Row */}
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', marginBottom: '60px' }}>
           <img
             src="/images/Kapeng_Barako.jpg"
@@ -190,7 +110,7 @@ const aboutus = () => {
               borderRadius: '12px',
               objectFit: 'cover',
               marginBottom: '20px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
             }}
           />
           <div style={{ flex: '1 1 50%', paddingLeft: '40px' }}>
@@ -205,7 +125,7 @@ const aboutus = () => {
           </div>
         </div>
 
-        {/* Second Row: Text Left, Image Right */}
+        {/* Second Row */}
         <div style={{ display: 'flex', flexWrap: 'wrap-reverse', alignItems: 'center' }}>
           <div style={{ flex: '1 1 50%', paddingRight: '40px' }}>
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#4B2E2E', marginBottom: '20px' }}>
@@ -227,48 +147,50 @@ const aboutus = () => {
               borderRadius: '12px',
               objectFit: 'cover',
               marginBottom: '20px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
             }}
           />
         </div>
       </div>
 
       <footer style={styles.footer}>
-  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', padding: '0 20px' }}>
-    <div style={{ flex: '1 1 250px', margin: '10px' }}>
-      <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Customer Service</h4>
-      <p>Need help? Our team is here for you 24/7.</p>
-      <p>FAQs</p>
-      <p>Returns & Refunds</p>
-      <p>Order Tracking</p>
-    </div>
-    
-    <div style={{ flex: '1 1 250px', margin: '10px' }}>
-      <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Contact Us</h4>
-      <p>Email: support@kapekalakal.com</p>
-      <p>Phone: +63 912 345 6789</p>
-      <p>Address: 123 Brew Street, Makati, PH</p>
-    </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', padding: '0 20px' }}>
+          <div style={{ flex: '1 1 250px', margin: '10px' }}>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Customer Service</h4>
+            <p>Need help? Our team is here for you 24/7.</p>
+            <p>FAQs</p>
+            <p>Returns & Refunds</p>
+            <p>Order Tracking</p>
+          </div>
 
-    <div style={{ flex: '1 1 250px', margin: '10px' }}>
-      <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>About Us</h4>
-      <p>Kape Kalakal is your go-to café for premium Filipino coffee blends. We're passionate about coffee and community.</p>
-      <p>Read Our Story</p>
-    </div>
-  </div>
+          <div style={{ flex: '1 1 250px', margin: '10px' }}>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Contact Us</h4>
+            <p>Email: support@kapekalakal.com</p>
+            <p>Phone: +63 912 345 6789</p>
+            <p>Address: 123 Brew Street, Makati, PH</p>
+          </div>
 
-  <div style={{ marginTop: '20px' }}>
-    <div style={styles.footerLinks}>
-      <a href="/" style={styles.footerLink}>Home</a>
-      <a href="/aboutus" style={styles.footerLink}>About Us</a>
-      <a href="/menu" style={styles.footerLink}>Menu</a>
-      <a href="/settings" style={styles.footerLink}>Settings</a>
-    </div>
-    &copy; {new Date().getFullYear()} Kape Kalakal. All rights reserved.
-  </div>
-</footer>
+          <div style={{ flex: '1 1 250px', margin: '10px' }}>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>About Us</h4>
+            <p>
+              Kape Kalakal is your go-to café for premium Filipino coffee blends. We're passionate about coffee and community.
+            </p>
+            <p>Read Our Story</p>
+          </div>
+        </div>
+
+        <div style={{ marginTop: '20px' }}>
+          <div style={styles.footerLinks}>
+            <a href="/dashboard" style={styles.footerLink}>Home</a>
+            <a href="/aboutus" style={styles.footerLink}>About Us</a>
+            <a href="/menu" style={styles.footerLink}>Menu</a>
+            <a href="/settings" style={styles.footerLink}>Settings</a>
+          </div>
+          &copy; {new Date().getFullYear()} Kape Kalakal. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 };
 
-export default aboutus;
+export default AboutUs;

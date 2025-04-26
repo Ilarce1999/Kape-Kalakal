@@ -1,40 +1,19 @@
-import React from 'react';
-import { useRouteError, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Error from './error'; // Path to your Error component
+import Dashboard from './dashboard'; // Path to your Dashboard component
 
-const ErrorPage = () => {
-  const error = useRouteError();
-
+const App = () => {
   return (
-    <div style={{
-      height: '100vh',
-      backgroundColor: '#F5DEB3',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      fontFamily: "'Playfair Display', serif",
-      color: '#8B4513',
-      textAlign: 'center',
-      padding: '0 20px'
-    }}>
-      <h1 style={{ fontSize: '3rem', marginBottom: '20px' }}>Oops!</h1>
-      <p>Sorry, an unexpected error has occurred.</p>
-      <p style={{ fontStyle: 'italic', marginTop: '10px' }}>
-        {error.statusText || error.message}
-      </p>
-      <Link to="/" style={{
-        marginTop: '30px',
-        padding: '12px 24px',
-        backgroundColor: '#8B4513',
-        color: 'white',
-        borderRadius: '8px',
-        textDecoration: 'none',
-        fontWeight: 'bold'
-      }}>
-        Go back home
-      </Link>
-    </div>
+    <Router>
+      <Routes>
+        {/* Define your routes */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        
+        {/* Catch-all route for errors */}
+        <Route path="*" element={<Error />} />
+      </Routes>
+    </Router>
   );
 };
 
-export default ErrorPage;
+export default App;

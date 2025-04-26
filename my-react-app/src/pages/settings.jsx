@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import customFetch from '../../../utils/customFetch'; // Ensure this is correctly imported
+import { toast } from 'react-toastify'; // Ensure toast is properly installed and set up
 
 const styles = {
   navbarWrapper: {
@@ -21,40 +23,21 @@ const styles = {
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
   },
-  burgerMenuWrapper: {
+  navLinks: {
     display: 'flex',
-    flexDirection: 'column',
-    cursor: 'pointer',
+    gap: '20px',
   },
-  burgerIcon: {
-    width: '30px',
-    height: '3px',
-    backgroundColor: 'white',
-    margin: '4px 0',
-  },
-  burgerMenu: {
-    position: 'absolute',
-    top: '70px',
-    right: '30px',
-    backgroundColor: '#8B4513',
-    borderRadius: '10px',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-    padding: '10px',
-    zIndex: 1001,
-  },
-  burgerMenuItem: {
+  navLink: {
     color: 'white',
-    padding: '10px 20px',
-    cursor: 'pointer',
-    textAlign: 'center',
     textDecoration: 'none',
-    display: 'block',
-    borderRadius: '8px',
-    transition: 'background-color 0.3s ease',
-  },
-  activeItem: {
-    backgroundColor: '#A0522D',
     fontWeight: 'bold',
+    transition: 'color 0.3s',
+    padding: '5px 10px', // Adding padding for better spacing and visual effect
+  },
+  activeNavLink: {
+    backgroundColor: '#A0522D', // Background color for active link
+    fontWeight: 'bold', // Ensure bold font for active link
+    borderRadius: '5px', // Optional: Adding border-radius for rounded corners
   },
   pageContent: {
     padding: '40px 30px',
@@ -127,20 +110,27 @@ const styles = {
 };
 
 const Settings = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const location = useLocation();
 
-  const getLinkStyle = (path) => ({
-    ...styles.burgerMenuItem,
-    ...(location.pathname === path ? styles.activeItem : {}),
-  });
+  const getLinkStyle = (path) => (location.pathname === path ? styles.activeNavLink : {});
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
     // Handle form submission logic here (e.g., update user settings)
     alert('Settings updated!');
+  };
+
+  const logoutUser = async () => {
+    try {
+      await customFetch.get('/auth/logout'); // Perform the logout request.
+      navigate('/login'); // Redirect to the login page after logout.
+      toast.success('Logging out...'); // Show a success toast message
+    } catch (error) {
+      toast.error('An error occurred while logging out. Please try again.');
+    }
   };
 
   return (
@@ -149,31 +139,13 @@ const Settings = () => {
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
           <div style={styles.navLeft}>Kape Kalakal</div>
-          <div style={styles.burgerMenuWrapper} onClick={() => setMenuOpen(!menuOpen)}>
-            <div style={styles.burgerIcon}></div>
-            <div style={styles.burgerIcon}></div>
-            <div style={styles.burgerIcon}></div>
+          <div style={styles.navLinks}>
+            <Link to="/dashboard" style={{ ...styles.navLink, ...getLinkStyle('/dashboard') }}>HOME</Link>
+            <Link to="/aboutus" style={{ ...styles.navLink, ...getLinkStyle('/aboutus') }}>ABOUT US</Link>
+            <Link to="/menu" style={{ ...styles.navLink, ...getLinkStyle('/menu') }}>PRODUCTS</Link>
+            <Link to="/settings" style={{ ...styles.navLink, ...getLinkStyle('/settings') }}>SETTINGS</Link>
+            <span onClick={logoutUser} style={styles.navLink}>LOGOUT</span>
           </div>
-
-          {menuOpen && (
-            <div style={styles.burgerMenu}>
-              <Link to="/" style={getLinkStyle('/')} onClick={() => setMenuOpen(false)}>
-                HOME
-              </Link>
-              <Link to="/aboutus" style={getLinkStyle('/aboutus')} onClick={() => setMenuOpen(false)}>
-                ABOUT US
-              </Link>
-              <Link to="/menu" style={getLinkStyle('/menu')} onClick={() => setMenuOpen(false)}>
-                MENU
-              </Link>
-              <Link to="/settings" style={getLinkStyle('/settings')} onClick={() => setMenuOpen(false)}>
-                SETTINGS
-              </Link>
-              <Link to="/login" style={getLinkStyle('/login')} onClick={() => setMenuOpen(false)}>
-                LOGOUT
-              </Link>
-            </div>
-          )}
         </nav>
       </div>
 
@@ -237,7 +209,7 @@ const Settings = () => {
         </div>
 
         <div style={styles.footerLinks}>
-          <a href="/" style={styles.footerLink}>Home</a>
+          <a href="/dashboard" style={styles.footerLink}>Home</a>
           <a href="/aboutus" style={styles.footerLink}>About Us</a>
           <a href="/menu" style={styles.footerLink}>Menu</a>
           <a href="/settings" style={styles.footerLink}>Settings</a>

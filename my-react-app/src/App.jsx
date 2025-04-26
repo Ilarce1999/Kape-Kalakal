@@ -1,55 +1,67 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import './index.css'; // Import the global styles
-import { Landing, Menu, Login, Register, AboutUs, Settings, Error, Dashboard } from './pages';  
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import './index.css';
 
+// Pages
+import {
+  Landing,
+  Menu,
+  Login,
+  Register,
+  AboutUs,
+  Settings,
+  Error,
+  Dashboard,
+} from './pages';
+
+// Actions and loaders
 import { action as registerAction } from './pages/register';
 import { action as loginAction } from './pages/login';
+import { loader as dashboardLoader } from './pages/dashboard';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Landing />,  
+    element: <Landing />,
+    errorElement: <Error />,  // Global error page
   },
-
   {
     path: '/error',
-    element: <Error />, 
+    element: <Error />,  // Error page for manual navigation to /error
   },
-
   {
     path: '/login',
-    element: <Login />,  
-    action: loginAction,  // Ensure this handles the login logic
+    element: <Login />,
+    action: loginAction,
+    errorElement: <Error />,  // Error page for this specific route
   },
-
   {
     path: '/dashboard',
-    element: <Dashboard />,  
-    // You could add a middleware here for authentication if needed
+    element: <Dashboard />,
+    loader: dashboardLoader,
+    errorElement: <Error />,  // Error page for this specific route
   },
-
   {
     path: '/register',
     element: <Register />,
-    action: registerAction,  // Ensure this handles the registration logic
+    action: registerAction,
+    errorElement: <Error />,  // Error page for this specific route
   },
-
   {
     path: '/menu',
-    element: <Menu />,  
-    // Ensure loginAction makes sense here
-    action: loginAction, // Maybe this is used for when a user tries to access the menu
+    element: <Menu />,
+    errorElement: <Error />,  // Error page for this specific route
   },
-
   {
     path: '/aboutus',
     element: <AboutUs />,
+    errorElement: <Error />,  // Error page for this specific route
   },
-
   {
     path: '/settings',
     element: <Settings />,
+    errorElement: <Error />,  // Error page for this specific route
   },
+
 ]);
 
 const App = () => {

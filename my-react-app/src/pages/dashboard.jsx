@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, Form, redirect, useNavigation } from 'react-router-dom';
+import {
+  Outlet,
+  useLoaderData,
+  Link,
+  useLocation,
+  redirect,
+  useNavigate,
+} from 'react-router-dom';
+import customFetch from '../../../utils/customFetch';
+import { toast } from 'react-toastify';
 
 const styles = {
   navbarWrapper: {
@@ -9,52 +18,58 @@ const styles = {
     top: 0,
     zIndex: 1000,
   },
+
   navbar: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '20px 30px',
+    padding: '10px 20px',
   },
   navLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    fontFamily: "'Playfair Display', serif",
+  },
+  logo: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+    marginRight: '10px',
+  },
+  
+  logoText: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
   },
-  burgerMenuWrapper: {
+  welcomeText: {
+    color: '#FFEBCD',
+    fontWeight: '700',
+    fontSize: '1rem',
+    fontFamily: "'Playfair Display', serif",
+    marginTop: '4px',
+  },
+  navItems: {
     display: 'flex',
-    flexDirection: 'column',
-    cursor: 'pointer',
+    gap: '20px',
+    alignItems: 'center', // Align items vertically
   },
-  burgerIcon: {
-    width: '30px',
-    height: '3px',
-    backgroundColor: 'white',
-    margin: '4px 0',
-  },
-  burgerMenu: {
-    position: 'absolute',
-    top: '70px',
-    right: '30px',
-    backgroundColor: '#8B4513',
-    borderRadius: '10px',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-    padding: '10px',
-    zIndex: 1001,
-  },
-  burgerMenuItem: {
+  navItem: {
     color: 'white',
-    padding: '10px 20px',
-    cursor: 'pointer',
-    textAlign: 'center',
-    textDecoration: 'none',
-    display: 'block',
-    borderRadius: '8px',
-    transition: 'background-color 0.3s ease',
-  },
-  activeItem: {
-    backgroundColor: '#A0522D',
+    fontSize: '1rem',
     fontWeight: 'bold',
+    textDecoration: 'none',
+    cursor: 'pointer',
+    transition: 'color 0.3s ease, background-color 0.3s ease',
+    padding: '5px 10px', // Ensure consistent padding for all links
+  },
+  activeLink: {
+    backgroundColor: '#A0522D', // Highlight background for the active link
+    fontWeight: 'bold', // Make the text bold for the active link
+    borderRadius: '5px', // Rounded corners for the active link
   },
   heroSection: {
     width: '100%',
@@ -79,25 +94,6 @@ const styles = {
     textAlign: 'center',
     fontFamily: "'Playfair Display', serif",
     padding: '0 20px',
-  },
-  heroButtons: {
-    position: 'absolute',
-    top: '60%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    display: 'flex',
-    gap: '20px',
-  },
-  heroButton: {
-    padding: '12px 24px',
-    fontSize: '1rem',
-    borderRadius: '8px',
-    border: 'none',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    color: 'white',
-    backgroundColor: '#8B4513',
-    transition: 'background-color 0.3s ease',
   },
   contentContainer: {
     display: 'flex',
@@ -158,6 +154,18 @@ const styles = {
     textDecoration: 'none',
     transition: 'color 0.3s ease',
   },
+  toast: {
+    position: 'fixed',
+    bottom: '30px',
+    right: '30px',
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    fontSize: '1rem',
+    boxShadow: '0px 4px 12px rgba(0,0,0,0.2)',
+    zIndex: 2000,
+  },
 };
 
 const heroImages = [
@@ -166,10 +174,33 @@ const heroImages = [
   { src: '/images/welcome3.jpg', text: 'Brewed for Your Success' },
 ];
 
+export const loader = async () => {
+  try {
+    const { data } = await customFetch.get('/users/current-user');
+    return data;
+  } catch (error) {
+    return redirect('/');
+  }
+};
+
 const Dashboard = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [heroIndex, setHeroIndex] = useState(0);
+  const { user } = useLoaderData();
+  const navigate = useNavigate();
   const location = useLocation();
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    setToastMessage('Welcome to the dashboard!');
+    setToastVisible(true);
+
+    const timer = setTimeout(() => {
+      setToastVisible(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -178,39 +209,55 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const getLinkStyle = (path) => ({
-    ...styles.burgerMenuItem,
-    ...(location.pathname === path ? styles.activeItem : {}),
-  });
+  const getLinkStyle = (path) => {
+    const isActive = location.pathname === path || (path === '/' && location.pathname === '/');
+    
+    return {
+      ...styles.navItem,
+      ...(isActive ? styles.activeLink : {}),
+    };
+  };
+
+  const logoutUser = async () => {
+    await customFetch.get('/auth/logout');
+    navigate('/login');
+    toast.success('Logging out...');
+  };
 
   return (
-    <div style={{ position: 'relative', overflowX: 'hidden', minHeight: '100vh', backgroundColor: '#F5DEB3' }}>
+    <div
+      style={{
+        position: 'relative',
+        overflowX: 'hidden',
+        minHeight: '100vh',
+        backgroundColor: '#F5DEB3',
+      }}
+    >
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div style={styles.navbarWrapper}>
           <nav style={styles.navbar}>
-            <div style={styles.navLeft}>Kape Kalakal</div>
-            <div style={styles.burgerMenuWrapper} onClick={() => setMenuOpen(!menuOpen)}>
-              <div style={styles.burgerIcon}></div>
-              <div style={styles.burgerIcon}></div>
-              <div style={styles.burgerIcon}></div>
-            </div>
-            {menuOpen && (
-              <div style={styles.burgerMenu}>
-                <Link to="/" style={getLinkStyle('/')} onClick={() => setMenuOpen(false)}>HOME</Link>
-                <Link to="/aboutus" style={getLinkStyle('/aboutus')} onClick={() => setMenuOpen(false)}>ABOUT US</Link>
-                <Link to="/menu" style={getLinkStyle('/menu')} onClick={() => setMenuOpen(false)}>MENU</Link>
-                <Link to="/settings" style={getLinkStyle('/settings')} onClick={() => setMenuOpen(false)}>SETTINGS</Link>
-                <Link to="/login" style={getLinkStyle('/')} onClick={() => setMenuOpen(false)}>LOGOUT</Link>
+            <div>
+              <div style={styles.navLeft}>
+                <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
+                <span style={styles.logoText}>Kape Kalakal</span>
               </div>
-            )}
+              <div style={styles.welcomeText}>
+                Welcome, <span style={{ fontWeight: 'bold' }}>{user?.name || 'User'}!</span>
+              </div>
+            </div>
+            <div style={styles.navItems}>
+              <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
+              <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
+              <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
+              <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
+              <span onClick={logoutUser} style={styles.navItem}>LOGOUT</span>
+            </div>
           </nav>
         </div>
 
         <div style={styles.heroSection}>
           <img src={heroImages[heroIndex].src} alt="hero" style={styles.heroImage} />
           <div style={styles.heroText}>{heroImages[heroIndex].text}</div>
-          <div style={styles.heroButtons}>
-          </div>
         </div>
 
         <div style={styles.contentContainer}>
@@ -257,16 +304,16 @@ const Dashboard = () => {
           </div>
 
           <div style={{ marginTop: '20px' }}>
-            <div style={styles.footerLinks}>
-              <a href="/" style={styles.footerLink}>Home</a>
-              <a href="/aboutus" style={styles.footerLink}>About Us</a>
-              <a href="/menu" style={styles.footerLink}>Menu</a>
-              <a href="/settings" style={styles.footerLink}>Settings</a>
-            </div>
-            &copy; {new Date().getFullYear()} Kape Kalakal. All rights reserved.
+            <p>© 2025 Kape Kalakal. All Rights Reserved.</p>
           </div>
         </footer>
       </div>
+
+      {toastVisible && (
+        <div style={styles.toast}>
+          <p>{toastMessage}</p>
+        </div>
+      )}
     </div>
   );
 };

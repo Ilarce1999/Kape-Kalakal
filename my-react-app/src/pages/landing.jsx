@@ -1,17 +1,16 @@
 import React from 'react';
-import { Form } from 'react-router-dom';
+import { Form, Outlet, useLocation } from 'react-router-dom';
 
 const styles = {
   wrapper: {
-    height: '100vh',
+    minHeight: '100vh',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundImage: 'url("/images/background.jpg")', // <-- Update the filename here
+    backgroundImage: 'url("/images/background.jpg")',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
-    flexDirection: 'column',
     padding: '20px',
   },
   card: {
@@ -21,7 +20,6 @@ const styles = {
     boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
     width: '100%',
     maxWidth: '400px',
-    marginBottom: '30px'
   },
   title: {
     textAlign: 'center',
@@ -41,29 +39,31 @@ const styles = {
     cursor: 'pointer',
     transition: 'background-color 0.3s ease',
     fontWeight: 'bold',
-    marginBottom: '10px'
+    marginBottom: '10px',
   },
-  footer: {
-    textAlign: 'center',
-    color: 'brown',
-    marginTop: '20px',
-    fontSize: '0.9rem'
-  }
 };
 
 const LandingPage = () => {
+  const location = useLocation();
+
+  // If the user is not on the root path, show only the nested page
+  const isRoot = location.pathname === '/';
+
   return (
     <div style={styles.wrapper}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Welcome to Kape Kalakal</h2>
-        <Form method="get" action="/register">
-          <button type="submit" style={styles.button}>Register</button>
-        </Form>
-        <Form method="get" action="/login">
-          <button type="submit" style={styles.button}>Login</button>
-        </Form>
-      </div>
-      
+      {isRoot ? (
+        <div style={styles.card}>
+          <h2 style={styles.title}>Welcome to Kape Kalakal</h2>
+          <Form method="get" action="/register">
+            <button type="submit" style={styles.button}>Register</button>
+          </Form>
+          <Form method="get" action="/login">
+            <button type="submit" style={styles.button}>Login</button>
+          </Form>
+        </div>
+      ) : (
+        <Outlet />
+      )}
     </div>
   );
 };
