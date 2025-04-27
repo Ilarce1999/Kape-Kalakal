@@ -1,17 +1,29 @@
 import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
-  drinkName: {
-    type: String
+  drinkName: {  // <-- change this from 'coffee' to 'drinkName'
+    type: String,
+    required: true,
   },
   size: {
     type: String,
-    enum: ['small', 'medium', 'large'], // Replace with your actual size values
-    default: 'small',
+    enum: ['Small', 'Medium', 'Large'],
+    required: true,
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  totalPrice: {
+    type: Number,
+    required: true,
+    min: 0,
   },
   orderedBy: {
     type: mongoose.Types.ObjectId,
-    ref: 'User'  // Ensure this references your 'User' model
+    ref: 'User',
+    required: true,
   }
 }, {
   timestamps: true

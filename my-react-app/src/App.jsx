@@ -11,6 +11,7 @@ import {
   Settings,
   Error,
   Dashboard,
+  Checkout,
 } from './pages';
 
 // Actions and loaders
@@ -32,36 +33,34 @@ const router = createBrowserRouter([
     path: '/login',
     element: <Login />,
     action: loginAction,
-    errorElement: <Error />,  // Error page for this specific route
+    errorElement: <Error />,
   },
   {
     path: '/dashboard',
     element: <Dashboard />,
     loader: dashboardLoader,
-    errorElement: <Error />,  // Error page for this specific route
-  },
-  {
-    path: '/register',
-    element: <Register />,
-    action: registerAction,
-    errorElement: <Error />,  // Error page for this specific route
+    errorElement: <Error />,
   },
   {
     path: '/menu',
     element: <Menu />,
-    errorElement: <Error />,  // Error page for this specific route
+    errorElement: <Error />,
+  },
+  {
+    path: '/checkout', // separate route
+    element: <Checkout />,
+    errorElement: <Error />,
   },
   {
     path: '/aboutus',
     element: <AboutUs />,
-    errorElement: <Error />,  // Error page for this specific route
+    errorElement: <Error />,
   },
   {
     path: '/settings',
     element: <Settings />,
-    errorElement: <Error />,  // Error page for this specific route
+    errorElement: <Error />,
   },
-
 ]);
 
 const App = () => {

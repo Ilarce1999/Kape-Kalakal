@@ -23,6 +23,14 @@ const styles = {
     fontWeight: 'bold',
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
+    display: 'flex',
+    alignItems: 'center',
+  },
+  logo: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    marginRight: '10px', // Add margin to separate logo and text
   },
   navLinks: {
     display: 'flex',
@@ -72,11 +80,13 @@ const AboutUs = () => {
     ...(location.pathname === path ? styles.activeLink : {}),
   });
 
+
+
   const logoutUser = async () => {
     try {
       await customFetch.get('/auth/logout');
       toast.success('Logged out successfully');
-      navigate('/login');
+      navigate('/login'); // Redirect to the login page after successful logout
     } catch (error) {
       toast.error('Error logging out');
     }
@@ -86,13 +96,21 @@ const AboutUs = () => {
     <div>
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
-          <div style={styles.navLeft}>Kape Kalakal</div>
+          <div style={styles.navLeft}>
+            <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
+            <span>Kape Kalakal</span>
+          </div>
           <div style={styles.navLinks}>
             <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
             <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
             <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
             <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
-            <span onClick={logoutUser} style={getLinkStyle('/')}>LOGOUT</span>
+            <span
+              onClick={logoutUser}
+              style={{ ...getLinkStyle('/'), cursor: 'pointer' }} // Add cursor pointer here
+            >
+              LOGOUT
+            </span>
           </div>
         </nav>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, NavLink } from 'react-router-dom';
 import customFetch from '../../../utils/customFetch';
-import { FaShoppingCart } from 'react-icons/fa';  // Cart Icon from react-icons
+import { FaShoppingCart } from 'react-icons/fa';
 
 const styles = {
   pageWrapper: {
@@ -29,38 +29,42 @@ const styles = {
     fontWeight: 'bold',
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
+    display: 'flex',         // Added flex
+    alignItems: 'center',    // Ensures the text aligns with the logo
   },
-  navLinks: {
-    display: 'flex',
-    gap: '20px',
-    alignItems: 'center',
+  logo: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    marginRight: '10px', // Add margin to separate logo and text
   },
   navLink: {
-    color: 'white',  // Text color
+    color: 'white',
     textDecoration: 'none',
     padding: '8px 16px',
     borderRadius: '8px',
     transition: 'background-color 0.3s ease',
     fontWeight: '500',
   },
+  activeLink: {
+    backgroundColor: '#A0522D',
+    fontWeight: 'bold',
+  },
   logoutButton: {
-    backgroundColor: 'transparent', // Red background color for logout button
-    color: 'white',  // White text color
+    backgroundColor: 'transparent',
+    color: 'white',
     padding: '8px 16px',
     borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: '500',
-    transition: 'background-color 0.3s ease',
     border: 'none',
     fontSize: '1rem',
   },
-  activeLink: {
-    color: '#A0522D',
-  },
   cartWrapper: {
     position: 'absolute',
-    top:'25px',
-    right:'10px',
+    top: '25px',
+    right: '10px',
+    cursor: 'pointer',
   },
   cartIcon: {
     color: 'white',
@@ -146,7 +150,6 @@ const styles = {
     cursor: 'pointer',
     border: 'none',
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-    transition: 'background-color 0.3s ease',
     width: '50%',
     textAlign: 'center',
     marginRight: '10px',
@@ -176,7 +179,6 @@ const styles = {
   footerLink: {
     color: 'white',
     textDecoration: 'none',
-    transition: 'color 0.3s ease',
   },
   modalOverlay: {
     position: 'fixed',
@@ -184,14 +186,14 @@ const styles = {
     left: 0,
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.7)', // Keeps dark overlay behind the modal
+    backgroundColor: 'rgba(0,0,0,0.7)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1001,
   },
   modal: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Semi-transparent white background
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     padding: '30px',
     borderRadius: '12px',
     width: '300px',
@@ -211,55 +213,52 @@ const styles = {
     border: 'none',
     width: '100%',
     marginTop: '20px',
-    transition: 'background-color 0.3s ease',
   },
 };
 
 const Menu = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCoffee, setSelectedCoffee] = useState(null);
   const [size, setSize] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [orderDetails, setOrderDetails] = useState([]);
-  const location = useLocation();
+  const [orderDetails, setOrderDetails] = useState(() => {
+    // ⬇️ Load orderDetails from localStorage on initial render
+    const savedOrders = localStorage.getItem('orderDetails');
+    return savedOrders ? JSON.parse(savedOrders) : [];
+  });
+
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // ⬇️ When orderDetails changes, save it to localStorage
+    localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+  }, [orderDetails]);
+
+  useEffect(() => {
+    if (location.state && location.state.newOrder) {
+      setOrderDetails((prevDetails) => [...prevDetails, ...location.state.newOrder]);
+    }
+  }, [location.state]);
 
   const logoutUser = async () => {
     try {
       await customFetch.get('/auth/logout');
+      localStorage.removeItem('orderDetails'); // clear saved orders on logout
       navigate('/login');
     } catch (error) {
       console.error('Logout failed', error);
     }
   };
 
-  const fetchOrders = async () => {
-    try {
-      const response = await customFetch.get('/orders');
-      console.log(response.data.orders); // Just for debugging
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-    }
-  };
-
-  const createOrder = async (orderData) => {
-    try {
-      const response = await customFetch.post('/orders', orderData);
-      console.log('Order Created:', response.data.order); // Just for debugging
-    } catch (error) {
-      console.error('Error creating order:', error);
-    }
-  };
-
   const coffees = [
-    { name: 'Espresso', description: 'A bold and rich shot of pure coffee, perfect for a quick energy boost.', price: 120, image: '/images/image1.jpg' },
-    { name: 'Cappuccino', description: 'A perfect balance of espresso, steamed milk, and foam for a smooth sip.', price: 140, image: '/images/image2.jpg' },
-    { name: 'Iced Latte', description: 'A refreshing cold coffee with milk, perfect for hot days or chill vibes.', price: 150, image: '/images/image3.jpg' },
-    { name: 'Flat White', description: 'A blend of microfoamed milk poured over a single or double shot of espresso.', price: 130, image: '/images/image4.jpg' },
-    { name: 'Cortado', description: 'A popular espresso-based coffee drink that actually originated in Spain', price: 150, image: '/images/image5.jpg' },
-    { name: 'Americano', description: 'An Iced Americano consists of espresso shots poured over ice and mixed with cold water', price: 135, image: '/images/image6.jpg' },
+    { name: 'Espresso', description: 'A bold and rich shot of pure coffee.', price: 120, image: '/images/image1.jpg' },
+    { name: 'Cappuccino', description: 'Espresso, steamed milk, and foam.', price: 140, image: '/images/image2.jpg' },
+    { name: 'Iced Latte', description: 'Cold coffee with milk.', price: 150, image: '/images/image3.jpg' },
+    { name: 'Flat White', description: 'Microfoamed milk on espresso.', price: 130, image: '/images/image4.jpg' },
+    { name: 'Cortado', description: 'Espresso with milk.', price: 150, image: '/images/image5.jpg' },
+    { name: 'Americano', description: 'Espresso over ice and cold water.', price: 135, image: '/images/image6.jpg' },
   ];
 
   const filteredCoffees = coffees.filter((coffee) =>
@@ -273,69 +272,60 @@ const Menu = () => {
 
   const handleAddToOrder = () => {
     if (size && quantity > 0) {
-      // Calculate price based on size
       const sizePrice = size === 'Medium' ? 10 : size === 'Large' ? 25 : 0;
       const totalPriceForItem = (selectedCoffee.price + sizePrice) * quantity;
-  
-      setOrderDetails([ 
-        ...orderDetails, 
-        { ...selectedCoffee, size, quantity, totalPrice: totalPriceForItem } 
-      ]);
+
+      const newOrder = {
+        ...selectedCoffee,
+        size,
+        quantity,
+        totalPrice: totalPriceForItem,
+      };
+
+      setOrderDetails((prevOrders) => [...prevOrders, newOrder]);
       setIsModalOpen(false);
       setSize('');
       setQuantity(1);
 
-      const orderData = {
-        orderedBy: 'userId',  // Replace with actual user ID if available
-        coffee: selectedCoffee.name,
-        size,
+      customFetch.post('/drinks', {
+        orderedBy: 'userId',
+        drinkName: selectedCoffee.name,
+        size: size,
         quantity,
-        totalPrice: totalPriceForItem
-      };
-      createOrder(orderData); // Create the order through the API
+        totalPrice: totalPriceForItem,
+      }).catch(console.error);
     }
   };
 
   const totalItems = orderDetails.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = orderDetails.reduce((acc, item) => acc + item.totalPrice, 0);
 
-  const handleCheckout = () => {
-    navigate('/checkout', { state: { orderDetails } });
+  const handleCartClick = () => {
+    navigate('/checkout', { state: { orderDetails, totalPrice } });
   };
-
-  useEffect(() => {
-    fetchOrders(); // Fetch orders when the component is mounted
-  }, []);
 
   return (
     <div style={styles.pageWrapper}>
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
-          <div style={styles.navLeft}>Kape Kalakal</div>
+          <div style={styles.navLeft}>
+            <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
+            <span>Kape Kalakal</span>
+          </div>
           <div style={styles.navRight}>
-            <Link to="/dashboard" style={styles.navLink}>
-              HOME
-            </Link>
-            <Link to="/aboutus" style={styles.navLink}>
-              ABOUT US
-            </Link>
-            <Link to="/menu" style={styles.navLink}>
+            <Link to="/dashboard" style={styles.navLink}>HOME</Link>
+            <Link to="/aboutus" style={styles.navLink}>ABOUT US</Link>
+            <NavLink 
+              to="/menu" 
+              style={({ isActive }) => isActive ? { ...styles.navLink, ...styles.activeLink } : styles.navLink}
+            >
               PRODUCTS
-            </Link>
-            <Link to="/settings" style={styles.navLink}>
-              SETTINGS
-            </Link>
-            <button onClick={logoutUser} style={styles.logoutButton}>
-            LOGOUT
-            </button>
-            {/* Cart Icon with total number of items */}
-            <div style={styles.cartWrapper}>
-              <Link to="/cart">
-                <FaShoppingCart style={styles.cartIcon} />
-                {totalItems > 0 && (
-                  <span style={styles.cartCount}>{totalItems}</span>
-                )}
-              </Link>
+            </NavLink>
+            <Link to="/settings" style={styles.navLink}>SETTINGS</Link>
+            <button onClick={logoutUser} style={styles.logoutButton}>LOGOUT</button>
+            <div style={styles.cartWrapper} onClick={handleCartClick}>
+              <FaShoppingCart style={styles.cartIcon} />
+              {totalItems > 0 && <span style={styles.cartCount}>{totalItems}</span>}
             </div>
           </div>
         </nav>
@@ -359,10 +349,7 @@ const Menu = () => {
               <div style={styles.coffeeName}>{coffee.name}</div>
               <p style={styles.description}>{coffee.description}</p>
               <div style={styles.orderButtonContainer}>
-                <button
-                  style={styles.orderButton}
-                  onClick={() => handleOrderClick(coffee)}
-                >
+                <button style={styles.orderButton} onClick={() => handleOrderClick(coffee)}>
                   Add to Order
                 </button>
                 <div style={styles.priceTag}>₱{coffee.price}</div>
@@ -372,49 +359,60 @@ const Menu = () => {
         </div>
 
         {isModalOpen && (
-          <div style={styles.modalOverlay}>
-            <div style={styles.modal}>
-              <h2>{selectedCoffee.name}</h2>
-              <p>{selectedCoffee.description}</p>
-              <p>Price: ₱{selectedCoffee.price}</p>
+  <div style={styles.modalOverlay}>
+    <div style={styles.modal}>
+      <h2>{selectedCoffee.name}</h2>
+      <p>{selectedCoffee.description}</p>
+      <p>Price: ₱{selectedCoffee.price}</p>
 
-              <div>
-                <label>Size:</label>
-                <select value={size} onChange={(e) => setSize(e.target.value)}>
-                  <option value="">Select size</option>
-                  <option value="Small">Small</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Large">Large</option>
-                </select>
-              </div>
-
-              <div>
-                <label>Quantity:</label>
-                <input
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, e.target.value))}
-                  min="1"
-                />
-              </div>
-
-              <div>
-                <button onClick={handleAddToOrder} style={styles.modalButton}>
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+      <div>
+        <label>Size:</label>
+        <select value={size} onChange={(e) => setSize(e.target.value)}>
+          <option value="">Select size</option>
+          <option value="Small">Small</option>
+          <option value="Medium">Medium</option>
+          <option value="Large">Large</option>
+        </select>
       </div>
 
-      <footer style={styles.footer}>
-        <p>All Rights Reserved &copy; 2025 Kape Kalakal</p>
+      <div>
+        <label>Quantity:</label>
+        <input
+          type="number"
+          min="1"
+          value={quantity}
+          onChange={(e) => setQuantity(Number(e.target.value))}
+        />
+      </div>
+
+      <button onClick={handleAddToOrder} style={styles.modalButton}>
+        Add to Cart
+      </button>
+
+      {/* ⬇️ Added Exit Button */}
+      <button
+        onClick={() => {
+          setIsModalOpen(false);
+          setSize('');
+          setQuantity(1);
+        }}
+        style={{ ...styles.modalButton, backgroundColor: '#D2B48C', color: 'brown' }}
+      >
+        Exit
+      </button>
+    </div>
+  </div>
+)}
+
+      </div>
+
+      <div style={styles.footer}>
+        <p>© 2025 Kape Kalakal | All Rights Reserved</p>
         <div style={styles.footerLinks}>
-          <a href="/terms" style={styles.footerLink}>Terms</a>
-          <a href="/privacy" style={styles.footerLink}>Privacy</a>
+          <a href="/terms" style={styles.footerLink}>Terms of Service</a>
+          <a href="/privacy" style={styles.footerLink}>Privacy Policy</a>
         </div>
-      </footer>
+      </div>
     </div>
   );
 };

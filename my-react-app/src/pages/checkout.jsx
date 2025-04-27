@@ -1,152 +1,148 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { FaShoppingCart } from 'react-icons/fa';  // Cart Icon from react-icons
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const styles = {
   pageWrapper: {
+    padding: '40px',
+    fontFamily: "'Playfair Display', serif",
     backgroundColor: '#F5DEB3',
     minHeight: '100vh',
-    margin: 0,
-    padding: 0,
   },
-  navbarWrapper: {
-    backgroundColor: '#8B4513',
-    width: '100%',
-    position: 'sticky',
-    top: 0,
-    zIndex: 1000,
-  },
-  navbar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '20px 30px',
-    flexWrap: 'wrap',
-  },
-  navLeft: {
-    color: 'white',
+  checkoutHeader: {
+    textAlign: 'center',
+    fontSize: '2.5rem',
     fontWeight: 'bold',
-    fontSize: '1.5rem',
-    fontFamily: "'Playfair Display', serif",
+    marginBottom: '30px',
+    color: '#4B2E2E',
   },
-  navLinks: {
-    display: 'flex',
-    gap: '20px',
-    alignItems: 'center',
-  },
-  navLink: {
-    color: 'white',
-    textDecoration: 'none',
-    padding: '8px 16px',
+  cartContainer: {
+    backgroundColor: '#4B2E2E',
+    padding: '20px',
     borderRadius: '8px',
-    transition: 'background-color 0.3s ease',
-    fontWeight: '500',
-  },
-  cartWrapper: {
-    position: 'absolute',
-    top: '25px',
-    right: '10px',
-  },
-  cartIcon: {
-    color: 'white',
-    fontSize: '1.5rem',
-  },
-  cartCount: {
-    backgroundColor: 'red',
-    color: 'white',
-    borderRadius: '50%',
-    padding: '5px 10px',
-    position: 'absolute',
-    top: '5px',
-    right: '0',
-    fontSize: '0.8rem',
-  },
-  checkoutContent: {
-    padding: '40px 20px',
-  },
-  orderList: {
-    listStyleType: 'none',
-    padding: 0,
-  },
-  orderItem: {
-    backgroundColor: '#fff8dc',
-    padding: '15px',
-    borderRadius: '12px',
-    marginBottom: '10px',
+    color: '#fff',
+    maxWidth: '900px',
+    margin: '0 auto',
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
   },
-  orderDetails: {
-    marginBottom: '5px',
+  cartItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '12px 0',
+    borderBottom: '1px solid #ddd',
+    fontSize: '1.2rem',
   },
-  totalPrice: {
-    fontSize: '1.5rem',
+  itemDetails: {
+    display: 'flex',
+    gap: '10px',
+    flexDirection: 'column',
+  },
+  itemName: {
     fontWeight: 'bold',
+    color: '#F5DEB3',
+  },
+  itemPrice: {
+    fontSize: '1.2rem',
+    color: '#fff',
+  },
+  totalPriceWrapper: {
     marginTop: '20px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontWeight: 'bold',
+    fontSize: '1.5rem',
+    color: '#F5DEB3',
   },
   checkoutButton: {
-    backgroundColor: '#4B2E2E',
+    backgroundColor: '#8B4513',
     color: '#fff',
-    fontWeight: 'bold',
-    padding: '15px 30px',
+    padding: '14px 22px',
     borderRadius: '25px',
-    fontSize: '1.2rem',
+    fontSize: '1.3rem',
     cursor: 'pointer',
     border: 'none',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-    transition: 'background-color 0.3s ease',
+    marginTop: '30px',
+    display: 'block',
+    width: '100%',
+    maxWidth: '300px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+  },
+  noItemsMessage: {
+    textAlign: 'center',
+    fontSize: '1.2rem',
+    color: '#4B2E2E',
+  },
+  backButton: {
+    backgroundColor: '#F5DEB3',
+    color: '#4B2E2E',
+    padding: '14px 22px',
+    borderRadius: '25px',
+    fontSize: '1.3rem',
+    cursor: 'pointer',
+    border: 'none',
     marginTop: '20px',
+    display: 'block',
+    width: '100%',
+    maxWidth: '300px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
   },
 };
 
 const Checkout = () => {
-  const location = useLocation();
-  const { orderDetails } = location.state || { orderDetails: [] };  // Get order details from location state
+  const { state } = useLocation();
+  const navigate = useNavigate();
 
-  // Calculate total price
-  const totalPrice = orderDetails.reduce((acc, item) => acc + item.totalPrice, 0);
+  const storedOrderDetails = JSON.parse(sessionStorage.getItem('orderDetails')) || [];
+  const storedTotalPrice = sessionStorage.getItem('totalPrice') || 0;
+  const { orderDetails = storedOrderDetails, totalPrice = storedTotalPrice } = state || {};
+
+  React.useEffect(() => {
+    if (orderDetails && orderDetails.length > 0) {
+      sessionStorage.setItem('orderDetails', JSON.stringify(orderDetails));
+      sessionStorage.setItem('totalPrice', totalPrice);
+    }
+  }, [orderDetails, totalPrice]);
+
+  const handleBackToMenu = () => {
+    navigate('/menu', { state: { existingOrder: orderDetails } });
+  };
 
   return (
     <div style={styles.pageWrapper}>
-      <div style={styles.navbarWrapper}>
-        <nav style={styles.navbar}>
-          <div style={styles.navLeft}>Kape Kalakal</div>
-          <div style={styles.navLinks}>
-            <Link to="/dashboard" style={styles.navLink}>HOME</Link>
-            <Link to="/aboutus" style={styles.navLink}>ABOUT US</Link>
-            <Link to="/menu" style={styles.navLink}>PRODUCTS</Link>
-            <Link to="/settings" style={styles.navLink}>SETTINGS</Link>
-            <button style={styles.navLink}>LOGOUT</button>
-          </div>
-          <div style={styles.cartWrapper}>
-            <FaShoppingCart style={styles.cartIcon} />
-            {orderDetails.length > 0 && <span style={styles.cartCount}>{orderDetails.length}</span>}
-          </div>
-        </nav>
-      </div>
+      <h1 style={styles.checkoutHeader}>Checkout</h1>
 
-      <div style={styles.checkoutContent}>
-        <h2>Your Orders</h2>
-        {orderDetails.length === 0 ? (
-          <p>No items in your cart</p>
-        ) : (
-          <ul style={styles.orderList}>
-            {orderDetails.map((item, index) => (
-              <li key={index} style={styles.orderItem}>
-                <div style={styles.orderDetails}>
-                  <strong>{item.name}</strong> - {item.size} - x{item.quantity}
-                </div>
-                <div style={styles.orderDetails}>₱{item.totalPrice}</div>
-              </li>
-            ))}
-          </ul>
-        )}
-        
-        <div style={styles.totalPrice}>
-          Total Price: ₱{totalPrice}
+      {orderDetails && orderDetails.length > 0 ? (
+        <div style={styles.cartContainer}>
+          {orderDetails.map((item, index) => (
+            <div key={index} style={styles.cartItem}>
+              <div style={styles.itemDetails}>
+                <div style={styles.itemName}>{item.name}</div>
+                <div style={styles.itemPrice}>₱{item.totalPrice}</div>
+                <div>Size: {item.size}</div>
+                <div>Quantity: {item.quantity}</div>
+              </div>
+            </div>
+          ))}
+
+          <div style={styles.totalPriceWrapper}>
+            <div>Total Price:</div>
+            <div>₱{totalPrice}</div>
+          </div>
+
+          <button style={styles.checkoutButton} onClick={() => alert('Proceeding to payment...')}>
+            Proceed to Payment
+          </button>
         </div>
+      ) : (
+        <div style={styles.noItemsMessage}>
+          <p>No items in the cart.</p>
+        </div>
+      )}
 
-        <button style={styles.checkoutButton}>Proceed to Payment</button>
-      </div>
+      <button style={styles.backButton} onClick={handleBackToMenu}>
+        Back to Menu
+      </button>
     </div>
   );
 };

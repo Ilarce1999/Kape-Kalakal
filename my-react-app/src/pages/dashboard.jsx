@@ -14,9 +14,19 @@ const styles = {
   navbarWrapper: {
     backgroundColor: '#8B4513',
     width: '100%',
+    height: '10%',  // Adjusted height
     position: 'fixed',
     top: 0,
-    zIndex: 1000,
+    zIndex: 1000
+  },
+
+  navbarWrapper: {
+    backgroundColor: '#8B4513',
+    width: '100%',
+    height: '10%',  // Adjusted height
+    position: 'fixed',
+    top: 0,
+    zIndex: 1000
   },
 
   navbar: {
@@ -24,19 +34,18 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '10px 20px',
+    lineHeight: '1.8',  // Add line height to adjust the vertical position of text
   },
   navLeft: {
     display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    fontFamily: "'Playfair Display', serif",
+    alignItems: 'center', // Ensure the logo and text are vertically centered
+    gap: '10px', // Space between logo and text
   },
   logo: {
     width: '40px',
     height: '40px',
     borderRadius: '50%',
     objectFit: 'cover',
-    marginRight: '10px',
   },
   
   logoText: {
@@ -44,18 +53,13 @@ const styles = {
     fontWeight: 'bold',
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
-  },
-  welcomeText: {
-    color: '#FFEBCD',
-    fontWeight: '700',
-    fontSize: '1rem',
-    fontFamily: "'Playfair Display', serif",
-    marginTop: '4px',
+    lineHeight: '1.8',  // Adjust this for vertical positioning
   },
   navItems: {
     display: 'flex',
     gap: '20px',
     alignItems: 'center', // Align items vertically
+    paddingTop: '10px',  // Adjust padding to move text down
   },
   navItem: {
     color: 'white',
@@ -166,7 +170,44 @@ const styles = {
     boxShadow: '0px 4px 12px rgba(0,0,0,0.2)',
     zIndex: 2000,
   },
+  dropdown: {
+    position: 'relative',
+    cursor: 'pointer',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: '100%',
+    right: '0',
+    backgroundColor: '#fff',
+    color: '#371D10',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+    display: 'none',
+  },
+  dropdownItem: {
+    padding: '5px 10px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  },
+  dropdownShow: {
+    display: 'block',
+  },
+  dropdownButton: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    color: 'white',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+  },
+  icon: {
+    fontSize: '18px',
+  }
 };
+
 
 const heroImages = [
   { src: '/images/welcome1.jpg', text: 'Welcome to Kape Kalakal!' },
@@ -190,6 +231,7 @@ const Dashboard = () => {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [heroIndex, setHeroIndex] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     setToastMessage('Welcome to the dashboard!');
@@ -218,6 +260,10 @@ const Dashboard = () => {
     };
   };
 
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   const logoutUser = async () => {
     await customFetch.get('/auth/logout');
     navigate('/login');
@@ -225,32 +271,35 @@ const Dashboard = () => {
   };
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        overflowX: 'hidden',
-        minHeight: '100vh',
-        backgroundColor: '#F5DEB3',
-      }}
-    >
+    <div style={{ position: 'relative', overflowX: 'hidden', minHeight: '100vh', backgroundColor: '#F5DEB3' }}>
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div style={styles.navbarWrapper}>
           <nav style={styles.navbar}>
-            <div>
-              <div style={styles.navLeft}>
-                <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
-                <span style={styles.logoText}>Kape Kalakal</span>
-              </div>
-              <div style={styles.welcomeText}>
-                Welcome, <span style={{ fontWeight: 'bold' }}>{user?.name || 'User'}!</span>
-              </div>
+            <div style={styles.navLeft}>
+              <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
+              <span style={styles.logoText}>Kape Kalakal</span>
             </div>
             <div style={styles.navItems}>
               <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
               <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
               <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
               <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
-              <span onClick={logoutUser} style={styles.navItem}>LOGOUT</span>
+              <div style={styles.dropdown} onClick={toggleDropdown}>
+                <button style={styles.dropdownButton}>
+                  <span>{user?.name}</span>
+                  <span style={styles.icon}>▼</span>
+                </button>
+                <div
+                  style={{
+                    ...styles.dropdownMenu,
+                    ...(isDropdownOpen ? styles.dropdownShow : {}),
+                  }}
+                >
+                  <div style={styles.dropdownItem} onClick={logoutUser}>
+                    Logout
+                  </div>
+                </div>
+              </div>
             </div>
           </nav>
         </div>

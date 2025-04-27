@@ -1,7 +1,7 @@
 export const SIZE = {
-    SMALL: 'small',
-    MEDIUM: 'medium',
-    LARGE: 'large',
+    SMALL: 'Small',
+    MEDIUM: 'Medium',
+    LARGE: 'Large',
 };
 
 export const DRINK_SORT_BY = {

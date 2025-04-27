@@ -22,6 +22,14 @@ const styles = {
     fontWeight: 'bold',
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
+    display: 'flex',         // Added flex
+    alignItems: 'center',    // Ensures the text aligns with the logo
+  },
+  logo: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    marginRight: '10px', // Add margin to separate logo and text
   },
   navLinks: {
     display: 'flex',
@@ -138,13 +146,22 @@ const Settings = () => {
       {/* Navbar */}
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
-          <div style={styles.navLeft}>Kape Kalakal</div>
+        <div style={styles.navLeft}>
+        <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
+        <span>Kape Kalakal</span>
+        </div>
           <div style={styles.navLinks}>
             <Link to="/dashboard" style={{ ...styles.navLink, ...getLinkStyle('/dashboard') }}>HOME</Link>
             <Link to="/aboutus" style={{ ...styles.navLink, ...getLinkStyle('/aboutus') }}>ABOUT US</Link>
             <Link to="/menu" style={{ ...styles.navLink, ...getLinkStyle('/menu') }}>PRODUCTS</Link>
             <Link to="/settings" style={{ ...styles.navLink, ...getLinkStyle('/settings') }}>SETTINGS</Link>
-            <span onClick={logoutUser} style={styles.navLink}>LOGOUT</span>
+            {/* LOGOUT span with cursor change */}
+            <span
+              onClick={logoutUser}
+              style={{ ...styles.navLink, cursor: 'pointer' }} // Added cursor pointer here
+            >
+              LOGOUT
+            </span>
           </div>
         </nav>
       </div>
