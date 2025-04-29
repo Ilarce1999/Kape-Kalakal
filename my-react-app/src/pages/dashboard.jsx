@@ -20,15 +20,6 @@ const styles = {
     zIndex: 1000
   },
 
-  navbarWrapper: {
-    backgroundColor: '#8B4513',
-    width: '100%',
-    height: '10%',  // Adjusted height
-    position: 'fixed',
-    top: 0,
-    zIndex: 1000
-  },
-
   navbar: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -53,8 +44,10 @@ const styles = {
     fontWeight: 'bold',
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
-    lineHeight: '1.8',  // Adjust this for vertical positioning
+    lineHeight: '1.8',
+    marginTop: '5px', // <-- add this
   },
+  
   navItems: {
     display: 'flex',
     gap: '20px',
@@ -207,7 +200,6 @@ const styles = {
     fontSize: '18px',
   }
 };
-
 
 const heroImages = [
   { src: '/images/welcome1.jpg', text: 'Welcome to Kape Kalakal!' },

@@ -29,14 +29,14 @@ const styles = {
     fontWeight: 'bold',
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
-    display: 'flex',         // Added flex
-    alignItems: 'center',    // Ensures the text aligns with the logo
+    display: 'flex', 
+    alignItems: 'center',
   },
   logo: {
     width: '40px',
     height: '40px',
     borderRadius: '50%',
-    marginRight: '10px', // Add margin to separate logo and text
+    marginRight: '10px', 
   },
   navLink: {
     color: 'white',
@@ -223,7 +223,6 @@ const Menu = () => {
   const [size, setSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [orderDetails, setOrderDetails] = useState(() => {
-    // ⬇️ Load orderDetails from localStorage on initial render
     const savedOrders = localStorage.getItem('orderDetails');
     return savedOrders ? JSON.parse(savedOrders) : [];
   });
@@ -232,20 +231,26 @@ const Menu = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // ⬇️ When orderDetails changes, save it to localStorage
     localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
   }, [orderDetails]);
 
   useEffect(() => {
-    if (location.state && location.state.newOrder) {
-      setOrderDetails((prevDetails) => [...prevDetails, ...location.state.newOrder]);
+    if (location.state) {
+      if (location.state.newOrder) {
+        setOrderDetails((prevDetails) => [...prevDetails, ...location.state.newOrder]);
+      }
+      if (location.state.updatedOrderDetails) {
+        setOrderDetails(location.state.updatedOrderDetails);
+      }
+      window.history.replaceState({}, document.title);
     }
   }, [location.state]);
+  
 
   const logoutUser = async () => {
     try {
       await customFetch.get('/auth/logout');
-      localStorage.removeItem('orderDetails'); // clear saved orders on logout
+      localStorage.removeItem('orderDetails');
       navigate('/login');
     } catch (error) {
       console.error('Logout failed', error);
@@ -301,6 +306,9 @@ const Menu = () => {
   const totalPrice = orderDetails.reduce((acc, item) => acc + item.totalPrice, 0);
 
   const handleCartClick = () => {
+    if (orderDetails.length === 0) {
+      localStorage.removeItem('orderDetails');
+    }
     navigate('/checkout', { state: { orderDetails, totalPrice } });
   };
 
@@ -379,40 +387,34 @@ const Menu = () => {
         <label>Quantity:</label>
         <input
           type="number"
-          min="1"
           value={quantity}
           onChange={(e) => setQuantity(Number(e.target.value))}
+          min="1"
         />
       </div>
 
-      <button onClick={handleAddToOrder} style={styles.modalButton}>
-        Add to Cart
-      </button>
-
-      {/* ⬇️ Added Exit Button */}
-      <button
-        onClick={() => {
-          setIsModalOpen(false);
-          setSize('');
-          setQuantity(1);
-        }}
-        style={{ ...styles.modalButton, backgroundColor: '#D2B48C', color: 'brown' }}
-      >
-        Exit
-      </button>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button style={{ ...styles.modalButton, backgroundColor: '#8B4513', color: 'white' }} onClick={handleAddToOrder}>
+          Add to Cart
+        </button>
+        <button style={{ ...styles.modalButton, backgroundColor: '#ccc', color: '#333' }} onClick={() => setIsModalOpen(false)}>
+          Cancel
+        </button>
+      </div>
     </div>
   </div>
 )}
-
       </div>
 
-      <div style={styles.footer}>
-        <p>© 2025 Kape Kalakal | All Rights Reserved</p>
+      <footer style={styles.footer}>
         <div style={styles.footerLinks}>
-          <a href="/terms" style={styles.footerLink}>Terms of Service</a>
-          <a href="/privacy" style={styles.footerLink}>Privacy Policy</a>
+          <Link to="/" style={styles.footerLink}>Home</Link>
+          <Link to="/menu" style={styles.footerLink}>Products</Link>
+          <Link to="/aboutus" style={styles.footerLink}>About Us</Link>
+          <Link to="/settings" style={styles.footerLink}>Settings</Link>
         </div>
-      </div>
+        <p>© 2025 Kape Kalakal, All rights reserved</p>
+      </footer>
     </div>
   );
 };

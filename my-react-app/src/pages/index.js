@@ -7,6 +7,8 @@ export { default as AboutUs } from './aboutus';
 export { default as Settings } from './settings';
 export { default as Error } from './error';
 export { default as Checkout } from './checkout';
+export { default as Payment } from './payment';
+export { default as OrderHistory } from './orderHistory';
 
 
 

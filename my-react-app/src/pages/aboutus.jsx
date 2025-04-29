@@ -1,7 +1,17 @@
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate, useLoaderData, redirect } from 'react-router-dom';
 import customFetch from '../../../utils/customFetch';
 import { toast } from 'react-toastify';
+
+// ADD THIS LOADER export here
+export const loader = async () => {
+  try {
+    const { data } = await customFetch.get('/users/current-user');
+    return data;
+  } catch (error) {
+    return redirect('/');
+  }
+};
 
 const styles = {
   navbarWrapper: {
@@ -30,9 +40,9 @@ const styles = {
     width: '40px',
     height: '40px',
     borderRadius: '50%',
-    marginRight: '10px', // Add margin to separate logo and text
+    marginRight: '10px',
   },
-  navLinks: {
+  navRight: {
     display: 'flex',
     gap: '20px',
     alignItems: 'center',
@@ -42,12 +52,22 @@ const styles = {
     textDecoration: 'none',
     padding: '8px 16px',
     borderRadius: '8px',
-    transition: 'background-color 0.3s ease',
     fontWeight: '500',
+    transition: 'background-color 0.3s ease',
   },
   activeLink: {
     backgroundColor: '#A0522D',
     fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: 'transparent',
+    color: 'white',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontWeight: '500',
+    border: 'none',
+    fontSize: '1rem',
   },
   footer: {
     backgroundColor: '#8B4513',
@@ -69,53 +89,103 @@ const styles = {
     textDecoration: 'none',
     transition: 'color 0.3s ease',
   },
+  dropdown: {
+    position: 'relative',
+    cursor: 'pointer',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: '100%',
+    right: '0',
+    backgroundColor: '#fff',
+    color: '#371D10',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+    display: 'none',
+  },
+  dropdownShow: {
+    display: 'block',
+  },
+  dropdownItem: {
+    padding: '5px 10px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  },
+  dropdownButton: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    color: 'white',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+  },
+  icon: {
+    fontSize: '18px',
+  },
 };
 
 const AboutUs = () => {
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useLoaderData();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const getLinkStyle = (path) => ({
-    ...styles.navLink,
-    ...(location.pathname === path ? styles.activeLink : {}),
-  });
+  const getLinkStyle = (path) => {
+    const isActive = location.pathname === path;
+    return {
+      ...styles.navLink,
+      ...(isActive ? styles.activeLink : {}),
+    };
+  };
 
-
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
 
   const logoutUser = async () => {
-    try {
-      await customFetch.get('/auth/logout');
-      toast.success('Logged out successfully');
-      navigate('/login'); // Redirect to the login page after successful logout
-    } catch (error) {
-      toast.error('Error logging out');
-    }
+    await customFetch.get('/auth/logout');
+    navigate('/login');
+    toast.success('Logging out...');
   };
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#F5DEB3', minHeight: '100vh' }}>
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
           <div style={styles.navLeft}>
             <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
-            <span>Kape Kalakal</span>
+            Kape Kalakal
           </div>
-          <div style={styles.navLinks}>
+          <div style={styles.navRight}>
             <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
             <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
             <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
             <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
-            <span
-              onClick={logoutUser}
-              style={{ ...getLinkStyle('/'), cursor: 'pointer' }} // Add cursor pointer here
-            >
-              LOGOUT
-            </span>
+            <div style={styles.dropdown} onClick={toggleDropdown}>
+              <button style={styles.dropdownButton}>
+                <span>{user?.name}</span>
+                <span style={styles.icon}>▼</span>
+              </button>
+              <div
+                style={{
+                  ...styles.dropdownMenu,
+                  ...(isDropdownOpen ? styles.dropdownShow : {}),
+                }}
+              >
+                <div style={styles.dropdownItem} onClick={logoutUser}>
+                  Logout
+                </div>
+              </div>
+            </div>
           </div>
         </nav>
       </div>
 
-      <div style={{ padding: '40px 30px' }}>
+  
+       <div style={{ padding: '40px 30px' }}>
         {/* First Row */}
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', marginBottom: '60px' }}>
           <img
@@ -171,42 +241,35 @@ const AboutUs = () => {
         </div>
       </div>
 
+
       <footer style={styles.footer}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', padding: '0 20px' }}>
-          <div style={{ flex: '1 1 250px', margin: '10px' }}>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Customer Service</h4>
-            <p>Need help? Our team is here for you 24/7.</p>
-            <p>FAQs</p>
-            <p>Returns & Refunds</p>
-            <p>Order Tracking</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', padding: '0 20px' }}>
+            <div style={{ flex: '1 1 250px', margin: '10px' }}>
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Customer Service</h4>
+              <p>Need help? Our team is here for you 24/7.</p>
+              <p>FAQs</p>
+              <p>Returns & Refunds</p>
+              <p>Order Tracking</p>
+            </div>
+
+            <div style={{ flex: '1 1 250px', margin: '10px' }}>
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Contact Us</h4>
+              <p>Email: support@kapekalakal.com</p>
+              <p>Phone: +63 912 345 6789</p>
+              <p>Address: 123 Brew Street, Makati, PH</p>
+            </div>
+
+            <div style={{ flex: '1 1 250px', margin: '10px' }}>
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>About Us</h4>
+              <p>Kape Kalakal is your go-to café for premium Filipino coffee blends. We're passionate about coffee and community.</p>
+              <p>Read Our Story</p>
+            </div>
           </div>
 
-          <div style={{ flex: '1 1 250px', margin: '10px' }}>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Contact Us</h4>
-            <p>Email: support@kapekalakal.com</p>
-            <p>Phone: +63 912 345 6789</p>
-            <p>Address: 123 Brew Street, Makati, PH</p>
+          <div style={{ marginTop: '20px' }}>
+            <p>© 2025 Kape Kalakal. All Rights Reserved.</p>
           </div>
-
-          <div style={{ flex: '1 1 250px', margin: '10px' }}>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>About Us</h4>
-            <p>
-              Kape Kalakal is your go-to café for premium Filipino coffee blends. We're passionate about coffee and community.
-            </p>
-            <p>Read Our Story</p>
-          </div>
-        </div>
-
-        <div style={{ marginTop: '20px' }}>
-          <div style={styles.footerLinks}>
-            <a href="/dashboard" style={styles.footerLink}>Home</a>
-            <a href="/aboutus" style={styles.footerLink}>About Us</a>
-            <a href="/menu" style={styles.footerLink}>Menu</a>
-            <a href="/settings" style={styles.footerLink}>Settings</a>
-          </div>
-          &copy; {new Date().getFullYear()} Kape Kalakal. All rights reserved.
-        </div>
-      </footer>
+        </footer>
     </div>
   );
 };

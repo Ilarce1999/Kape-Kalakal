@@ -12,12 +12,16 @@ import {
   Error,
   Dashboard,
   Checkout,
+  Payment,
+  OrderHistory,
 } from './pages';
 
 // Actions and loaders
 import { action as registerAction } from './pages/register';
 import { action as loginAction } from './pages/login';
 import { loader as dashboardLoader } from './pages/dashboard';
+import { loader as aboutusLoader } from './pages/aboutus';
+
 
 const router = createBrowserRouter([
   {
@@ -29,6 +33,14 @@ const router = createBrowserRouter([
     path: '/error',
     element: <Error />,  // Error page for manual navigation to /error
   },
+
+  {
+    path: '/register',
+    element: <Register />,
+    action: registerAction,
+    errorElement: <Error />,
+  },
+  
   {
     path: '/login',
     element: <Login />,
@@ -47,13 +59,24 @@ const router = createBrowserRouter([
     errorElement: <Error />,
   },
   {
-    path: '/checkout', // separate route
+    path: '/checkout', 
     element: <Checkout />,
+    errorElement: <Error />,
+  },
+  {
+    path: '/payment',
+    element: <Payment />,
+    errorElement: <Error />,
+  },
+  {
+    path: '/orderHistory', 
+    element: <OrderHistory />,
     errorElement: <Error />,
   },
   {
     path: '/aboutus',
     element: <AboutUs />,
+    loader: aboutusLoader,
     errorElement: <Error />,
   },
   {
