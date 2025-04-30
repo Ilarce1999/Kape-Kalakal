@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import customFetch from '../../../utils/customFetch'; // Ensure this is correctly imported
-import { toast } from 'react-toastify'; // Ensure toast is properly installed and set up
+import { Link, useLocation, useNavigate, useLoaderData, redirect } from 'react-router-dom';
+import customFetch from '../../../utils/customFetch';
+import { toast } from 'react-toastify';
+
+export const loader = async () => {
+  try {
+    const { data } = await customFetch.get('/users/current-user');
+    return data;
+  } catch (error) {
+    return redirect('/');
+  }
+};
 
 const styles = {
   navbarWrapper: {
     backgroundColor: '#8B4513',
     width: '100%',
-    position: 'sticky',
+    height: '10%',
+    position: 'fixed',
     top: 0,
     zIndex: 1000,
   },
@@ -15,40 +25,82 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '20px 30px',
+    padding: '10px 20px',
   },
   navLeft: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: '1.5rem',
-    fontFamily: "'Playfair Display', serif",
-    display: 'flex',         // Added flex
-    alignItems: 'center',    // Ensures the text aligns with the logo
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
   },
   logo: {
     width: '40px',
     height: '40px',
     borderRadius: '50%',
-    marginRight: '10px', // Add margin to separate logo and text
+    objectFit: 'cover',
   },
-  navLinks: {
+  logoText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: '1.5rem',
+    fontFamily: "'Playfair Display', serif",
+    lineHeight: '1.8',
+    marginTop: '5px',
+  },
+  navItems: {
     display: 'flex',
     gap: '20px',
+    alignItems: 'center',
+    paddingTop: '10px',
   },
-  navLink: {
+  navItem: {
     color: 'white',
-    textDecoration: 'none',
+    fontSize: '1rem',
     fontWeight: 'bold',
-    transition: 'color 0.3s',
-    padding: '5px 10px', // Adding padding for better spacing and visual effect
+    textDecoration: 'none',
+    cursor: 'pointer',
+    transition: 'color 0.3s ease, background-color 0.3s ease',
+    padding: '5px 10px',
   },
-  activeNavLink: {
-    backgroundColor: '#A0522D', // Background color for active link
-    fontWeight: 'bold', // Ensure bold font for active link
-    borderRadius: '5px', // Optional: Adding border-radius for rounded corners
+  activeLink: {
+    backgroundColor: '#A0522D',
+    fontWeight: 'bold',
+    borderRadius: '5px',
+  },
+  dropdown: {
+    position: 'relative',
+    cursor: 'pointer',
+  },
+  dropdownButton: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    color: 'white',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: '100%',
+    right: '0',
+    backgroundColor: '#fff',
+    color: '#371D10',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+    display: 'none',
+  },
+  dropdownShow: {
+    display: 'block',
+  },
+  dropdownItem: {
+    padding: '5px 10px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
   },
   pageContent: {
-    padding: '40px 30px',
+    padding: '160px 30px 40px', // pushed down below navbar
     textAlign: 'center',
     fontFamily: "'Playfair Display', serif",
   },
@@ -119,52 +171,79 @@ const styles = {
 
 const Settings = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useLoaderData();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const location = useLocation();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const getLinkStyle = (path) => (location.pathname === path ? styles.activeNavLink : {});
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => !prev);
+  };
+
+  const getLinkStyle = (path) => {
+    const isActive = location.pathname === path;
+    return {
+      ...styles.navItem,
+      ...(isActive ? styles.activeLink : {}),
+    };
+  };
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission logic here (e.g., update user settings)
     alert('Settings updated!');
   };
 
   const logoutUser = async () => {
     try {
-      await customFetch.get('/auth/logout'); // Perform the logout request.
-      navigate('/login'); // Redirect to the login page after logout.
-      toast.success('Logging out...'); // Show a success toast message
+      await customFetch.get('/auth/logout');
+      navigate('/login');
+      toast.success('Logging out...');
     } catch (error) {
-      toast.error('An error occurred while logging out. Please try again.');
+      toast.error('An error occurred while logging out.');
     }
   };
 
   return (
-    <div>
+    <div style={{ position: 'relative', overflowX: 'hidden', minHeight: '100vh', backgroundColor: '#F5DEB3' }}>
       {/* Navbar */}
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
-        <div style={styles.navLeft}>
-        <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
-        <span>Kape Kalakal</span>
-        </div>
-          <div style={styles.navLinks}>
-            <Link to="/dashboard" style={{ ...styles.navLink, ...getLinkStyle('/dashboard') }}>HOME</Link>
-            <Link to="/aboutus" style={{ ...styles.navLink, ...getLinkStyle('/aboutus') }}>ABOUT US</Link>
-            <Link to="/menu" style={{ ...styles.navLink, ...getLinkStyle('/menu') }}>PRODUCTS</Link>
-            <Link to="/settings" style={{ ...styles.navLink, ...getLinkStyle('/settings') }}>SETTINGS</Link>
-            {/* LOGOUT span with cursor change */}
-            <span
-              onClick={logoutUser}
-              style={{ ...styles.navLink, cursor: 'pointer' }} // Added cursor pointer here
-            >
-              LOGOUT
-            </span>
+          <div style={styles.navLeft}>
+            <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
+            <span style={styles.logoText}>Kape Kalakal</span>
+          </div>
+          <div style={styles.navItems}>
+            <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
+            <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
+            <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
+            <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
+            <div style={styles.dropdown} onClick={toggleDropdown}>
+              <button style={styles.dropdownButton}>
+                <span>{user?.name}</span>
+                <span>▼</span>
+              </button>
+              <div style={{ ...styles.dropdownMenu, ...(isDropdownOpen ? styles.dropdownShow : {}) }}>
+                <div style={styles.dropdownItem} onClick={logoutUser}>Logout</div>
+              </div>
+            </div>
           </div>
         </nav>
       </div>
+
+      {/* Optional Image */}
+      {/* <img
+        src="/images/Kapeng_Barako.jpg"
+        alt="Kape Kalakal Storefront"
+        style={{
+          width: '100%',
+          borderRadius: '12px',
+          objectFit: 'cover',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+          maxHeight: '400px',
+          marginTop: '120px',
+        }}
+      /> */}
 
       {/* Settings Form */}
       <div style={styles.pageContent}>
@@ -191,9 +270,7 @@ const Settings = () => {
             placeholder="Enter your new password"
             style={styles.inputField}
           />
-          <button type="submit" style={styles.submitButton}>
-            Save Changes
-          </button>
+          <button type="submit" style={styles.submitButton}>Save Changes</button>
         </form>
       </div>
 
@@ -207,14 +284,12 @@ const Settings = () => {
             <p>Returns & Refunds</p>
             <p>Order Tracking</p>
           </div>
-
           <div style={styles.footerColumn}>
             <h4 style={styles.footerHeading}>Contact Us</h4>
             <p>Email: support@kapekalakal.com</p>
             <p>Phone: +63 912 345 6789</p>
             <p>Address: 123 Brew Street, Makati, PH</p>
           </div>
-
           <div style={styles.footerColumn}>
             <h4 style={styles.footerHeading}>About Us</h4>
             <p>
@@ -224,14 +299,12 @@ const Settings = () => {
             <p>Read Our Story</p>
           </div>
         </div>
-
         <div style={styles.footerLinks}>
           <a href="/dashboard" style={styles.footerLink}>Home</a>
           <a href="/aboutus" style={styles.footerLink}>About Us</a>
           <a href="/menu" style={styles.footerLink}>Menu</a>
           <a href="/settings" style={styles.footerLink}>Settings</a>
         </div>
-
         <div style={{ marginTop: '15px', textAlign: 'center' }}>
           &copy; {new Date().getFullYear()} Kape Kalakal. All rights reserved.
         </div>

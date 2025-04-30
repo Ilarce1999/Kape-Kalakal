@@ -10,6 +10,7 @@ import {
 import customFetch from '../../../utils/customFetch';
 import { toast } from 'react-toastify';
 
+
 const styles = {
   navbarWrapper: {
     backgroundColor: '#8B4513',
@@ -198,7 +199,8 @@ const styles = {
   },
   icon: {
     fontSize: '18px',
-  }
+  },
+  
 };
 
 const heroImages = [

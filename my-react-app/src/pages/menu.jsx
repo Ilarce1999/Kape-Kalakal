@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate, NavLink } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useLoaderData, NavLink } from 'react-router-dom';
 import customFetch from '../../../utils/customFetch';
 import { FaShoppingCart } from 'react-icons/fa';
+
+// ADD THIS LOADER export here
+export const loader = async () => {
+  try {
+    const { data } = await customFetch.get('/users/current-user');
+    return data;
+  } catch (error) {
+    return redirect('/');
+  }
+};
 
 const styles = {
   pageWrapper: {
@@ -29,26 +39,32 @@ const styles = {
     fontWeight: 'bold',
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
-    display: 'flex', 
+    display: 'flex',
     alignItems: 'center',
   },
   logo: {
     width: '40px',
     height: '40px',
     borderRadius: '50%',
-    marginRight: '10px', 
+    marginRight: '10px',
+  },
+  navRight: {
+    display: 'flex',
+    gap: '10px', // Reduced gap to bring elements closer together
+    alignItems: 'center',
   },
   navLink: {
     color: 'white',
     textDecoration: 'none',
-    padding: '8px 16px',
+    padding: '6px 12px', // Adjusted padding to make the links closer
     borderRadius: '8px',
-    transition: 'background-color 0.3s ease',
     fontWeight: '500',
+    transition: 'background-color 0.3s ease',
   },
   activeLink: {
     backgroundColor: '#A0522D',
     fontWeight: 'bold',
+    borderRadius: '5px',
   },
   logoutButton: {
     backgroundColor: 'transparent',
@@ -62,7 +78,7 @@ const styles = {
   },
   cartWrapper: {
     position: 'absolute',
-    top: '25px',
+    top: '28px',
     right: '10px',
     cursor: 'pointer',
   },
@@ -214,6 +230,49 @@ const styles = {
     width: '100%',
     marginTop: '20px',
   },
+  dropdown: {
+    position: 'relative',
+    cursor: 'pointer',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: '100%',
+    right: '0',
+    backgroundColor: '#fff',
+    color: '#371D10',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+    display: 'none',
+  },
+  dropdownShow: {
+    display: 'block',
+  },
+  dropdownItem: {
+    padding: '5px 10px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  },
+  dropdownButton: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    color: 'white',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    padding: '10px',
+    position: 'relative',
+    marginLeft: 'auto', // keeps it pushed to the right
+    marginRight: '20px', // <--- this moves it left from the edge
+  },
+  
+  icon: {
+    fontSize: '18px',
+    display: 'inline-block',
+    transform: 'translateY(1px)', 
+  },
 };
 
 const Menu = () => {
@@ -229,6 +288,9 @@ const Menu = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  
+    const { user } = useLoaderData();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
@@ -245,6 +307,11 @@ const Menu = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   
 
   const logoutUser = async () => {
@@ -330,7 +397,22 @@ const Menu = () => {
               PRODUCTS
             </NavLink>
             <Link to="/settings" style={styles.navLink}>SETTINGS</Link>
-            <button onClick={logoutUser} style={styles.logoutButton}>LOGOUT</button>
+            <div style={styles.dropdown} onClick={toggleDropdown}>
+              <button style={styles.dropdownButton}>
+                <span>{user?.name}</span>
+                <span style={styles.icon}>▼</span>
+              </button>
+              <div
+                style={{
+                  ...styles.dropdownMenu,
+                  ...(isDropdownOpen ? styles.dropdownShow : {}),
+                }}
+              >
+                <div style={styles.dropdownItem} onClick={logoutUser}>
+                  Logout
+                </div>
+              </div>
+            </div>
             <div style={styles.cartWrapper} onClick={handleCartClick}>
               <FaShoppingCart style={styles.cartIcon} />
               {totalItems > 0 && <span style={styles.cartCount}>{totalItems}</span>}

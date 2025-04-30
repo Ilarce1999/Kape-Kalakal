@@ -14,14 +14,18 @@ import {
   Checkout,
   Payment,
   OrderHistory,
+  Admin,
 } from './pages';
 
 // Actions and loaders
 import { action as registerAction } from './pages/register';
 import { action as loginAction } from './pages/login';
+import { loader as loginLoader } from './pages/login'; // Import loader for login
 import { loader as dashboardLoader } from './pages/dashboard';
 import { loader as aboutusLoader } from './pages/aboutus';
-
+import { loader as menuLoader } from './pages/menu';
+import { loader as settingsLoader } from './pages/settings';
+import { loader as adminDashboardLoader } from './pages/admin';
 
 const router = createBrowserRouter([
   {
@@ -45,6 +49,13 @@ const router = createBrowserRouter([
     path: '/login',
     element: <Login />,
     action: loginAction,
+    loader: loginLoader,  // Use the imported loader for login
+    errorElement: <Error />,
+  },
+  {
+    path: '/admin',
+    element: <Admin />,
+    loader: adminDashboardLoader,
     errorElement: <Error />,
   },
   {
@@ -56,6 +67,7 @@ const router = createBrowserRouter([
   {
     path: '/menu',
     element: <Menu />,
+    loader: menuLoader,
     errorElement: <Error />,
   },
   {
@@ -82,6 +94,7 @@ const router = createBrowserRouter([
   {
     path: '/settings',
     element: <Settings />,
+    loader: settingsLoader,
     errorElement: <Error />,
   },
 ]);

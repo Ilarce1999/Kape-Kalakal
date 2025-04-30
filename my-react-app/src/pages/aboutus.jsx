@@ -17,30 +17,51 @@ const styles = {
   navbarWrapper: {
     backgroundColor: '#8B4513',
     width: '100%',
-    position: 'sticky',
+    height: '10%',  // Adjusted height
+    position: 'fixed',
     top: 0,
-    zIndex: 1000,
+    zIndex: 1000
   },
   navbar: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '20px 30px',
-    flexWrap: 'wrap',
+    padding: '10px 20px',
+    lineHeight: '1.8',  // Add line height to adjust the vertical position of text
   },
   navLeft: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: '1.5rem',
-    fontFamily: "'Playfair Display', serif",
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'center', // Ensure the logo and text are vertically centered
+    gap: '10px', // Space between logo and text
   },
   logo: {
     width: '40px',
     height: '40px',
     borderRadius: '50%',
-    marginRight: '10px',
+    objectFit: 'cover',
+  },
+  logoText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: '1.5rem',
+    fontFamily: "'Playfair Display', serif",
+    lineHeight: '1.8',
+    marginTop: '5px', // <-- add this
+  },
+  navItems: {
+    display: 'flex',
+    gap: '20px',
+    alignItems: 'center', // Align items vertically
+    paddingTop: '10px',  // Adjust padding to move text down
+  },
+  navItem: {
+    color: 'white',
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    textDecoration: 'none',
+    cursor: 'pointer',
+    transition: 'color 0.3s ease, background-color 0.3s ease',
+    padding: '5px 10px', // Ensure consistent padding for all links
   },
   navRight: {
     display: 'flex',
@@ -56,8 +77,9 @@ const styles = {
     transition: 'background-color 0.3s ease',
   },
   activeLink: {
-    backgroundColor: '#A0522D',
-    fontWeight: 'bold',
+    backgroundColor: '#A0522D', // Highlight background for the active link
+    fontWeight: 'bold', // Make the text bold for the active link
+    borderRadius: '5px', // Rounded corners for the active link
   },
   logoutButton: {
     backgroundColor: 'transparent',
@@ -134,12 +156,13 @@ const AboutUs = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const getLinkStyle = (path) => {
-    const isActive = location.pathname === path;
+    const isActive = location.pathname === path || (path === '/' && location.pathname === '/');
+    
     return {
-      ...styles.navLink,
+      ...styles.navItem,
       ...(isActive ? styles.activeLink : {}),
     };
-  };
+  }
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -152,66 +175,75 @@ const AboutUs = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#F5DEB3', minHeight: '100vh' }}>
-      <div style={styles.navbarWrapper}>
-        <nav style={styles.navbar}>
-          <div style={styles.navLeft}>
-            <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
-            Kape Kalakal
-          </div>
-          <div style={styles.navRight}>
-            <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
-            <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
-            <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
-            <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
-            <div style={styles.dropdown} onClick={toggleDropdown}>
-              <button style={styles.dropdownButton}>
-                <span>{user?.name}</span>
-                <span style={styles.icon}>▼</span>
-              </button>
-              <div
-                style={{
-                  ...styles.dropdownMenu,
-                  ...(isDropdownOpen ? styles.dropdownShow : {}),
-                }}
-              >
-                <div style={styles.dropdownItem} onClick={logoutUser}>
-                  Logout
+    <div style={{ position: 'relative', overflowX: 'hidden', minHeight: '100vh', backgroundColor: '#F5DEB3' }}>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={styles.navbarWrapper}>
+              <nav style={styles.navbar}>
+                <div style={styles.navLeft}>
+                  <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
+                  <span style={styles.logoText}>Kape Kalakal</span>
                 </div>
-              </div>
+                <div style={styles.navItems}>
+                  <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
+                  <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
+                  <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
+                  <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
+                  <div style={styles.dropdown} onClick={toggleDropdown}>
+                    <button style={styles.dropdownButton}>
+                      <span>{user?.name}</span>
+                      <span style={styles.icon}>▼</span>
+                    </button>
+                    <div
+                      style={{
+                        ...styles.dropdownMenu,
+                        ...(isDropdownOpen ? styles.dropdownShow : {}),
+                      }}
+                    >
+                      <div style={styles.dropdownItem} onClick={logoutUser}>
+                        Logout
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </nav>
             </div>
           </div>
-        </nav>
-      </div>
 
   
        <div style={{ padding: '40px 30px' }}>
         {/* First Row */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', marginBottom: '60px' }}>
-          <img
-            src="/images/Kapeng_Barako.jpg"
-            alt="Kape Kalakal Storefront"
-            style={{
-              flex: '1 1 50%',
-              width: '100%',
-              maxWidth: '600px',
-              borderRadius: '12px',
-              objectFit: 'cover',
-              marginBottom: '20px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-            }}
-          />
-          <div style={{ flex: '1 1 50%', paddingLeft: '40px' }}>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#4B2E2E', marginBottom: '20px' }}>
-              Welcome to Kape Kalakal
-            </h2>
-            <p style={{ fontSize: '1.1rem', color: '#333', lineHeight: '1.8' }}>
-              Kape Kalakal is not just your typical coffee hub—it's a celebration of Filipino craftsmanship.
-              Our mission is to serve quality coffee while uplifting local farmers and artisans.
-              Each cup brewed is rooted in community and sustainability, giving you more than just a caffeine fix.
-            </p>
-          </div>
-        </div>
+        {/* First Row - Adjusted Layout */}
+<div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', marginBottom: '60px' }}>
+  <div style={{ flex: '1 1 50%', paddingRight: '30px', marginBottom: '20px' }}>
+  <img
+  src="/images/Kapeng_Barako.jpg"
+  alt="Kape Kalakal Storefront"
+  style={{
+    width: '100%',
+    borderRadius: '12px',
+    objectFit: 'cover',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+    maxHeight: '400px',
+    marginTop: '80px', // <-- pushes the image down
+  }}
+/>
+  </div>
+  <div style={{ flex: '1 1 50%', paddingLeft: '30px', minWidth: '300px' }}>
+    <h2 style={{
+      fontFamily: "'Playfair Display', serif",
+      fontSize: '2rem',
+      color: '#4B2E2E',
+      marginBottom: '20px'
+    }}>
+      Welcome to Kape Kalakal
+    </h2>
+    <p style={{ fontSize: '1.1rem', color: '#333', lineHeight: '1.8' }}>
+      Kape Kalakal is not just your typical coffee hub—it's a celebration of Filipino craftsmanship.
+      Our mission is to serve quality coffee while uplifting local farmers and artisans.
+      Each cup brewed is rooted in community and sustainability, giving you more than just a caffeine fix.
+    </p>
+  </div>
+</div>
 
         {/* Second Row */}
         <div style={{ display: 'flex', flexWrap: 'wrap-reverse', alignItems: 'center' }}>
