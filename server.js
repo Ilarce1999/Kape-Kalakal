@@ -56,7 +56,7 @@ app.post('/api/v1/drinks');
 app.get('/api/v1/drinks/:id');
 
 //EDIT DRINK
-app.patch('/api/v1/drinks/:id');
+
 
 // DELETE DRINK
 app.delete('/api/v1/drinks/:id'); */}
@@ -67,6 +67,7 @@ app.delete('/api/v1/drinks/:id'); */}
 app.use('/api/v1/drinks', authenticateUser, drinkRouter);
 app.use('/api/v1/users', authenticateUser, userRouter);
 app.use('/api/v1/auth', authRouter);
+
 
 app.use('*', (req, res) => {
     res.status(404).json({ msg: 'not found'}); 

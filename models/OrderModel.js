@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
-  drinkName: {  // <-- change this from 'coffee' to 'drinkName'
+  drinkName: {  
     type: String,
     required: true,
   },

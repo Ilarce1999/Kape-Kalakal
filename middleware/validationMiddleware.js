@@ -1,99 +1,137 @@
+// middleware/validationMiddleware.js
 import { body, param, validationResult } from 'express-validator';
-import { BadRequestError, NotFoundError, UnauthenticatedError, UnauthorizedError } from '../errors/customErrors.js';
-import { SIZE } from '../utils/constants.js';
 import mongoose from 'mongoose';
 import OrderModel from '../models/OrderModel.js';
 import User from '../models/UserModel.js';
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError
+} from '../errors/customErrors.js';
 
-// Middleware to handle validation errors
+// Reusable error handler for validation errors
 const withValidationErrors = (validateValues) => {
-    return[
-      validateValues,
-      (req, res, next) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          const errorMessages = errors.array().map((error) => error.msg);
-          if (errorMessages[0].startsWith('no order')) {
-            throw new NotFoundError(errorMessages);
-
-          }
-          if (errorMessages[0].startsWith('not authorized')){
-            throw new UnauthorizedError('not authorized to access this route');
-          }
-              throw new BadRequestError(errorMessages);
+  return [
+    ...validateValues,
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const errorMessages = errors.array().map((error) => error.msg);
+        
+        // Custom error handling based on the type of message
+        if (errorMessages[0].toLowerCase().includes('no order')) {
+          throw new NotFoundError(errorMessages.join(', '));
         }
-
-        next();
+        if (errorMessages[0].toLowerCase().includes('not authorized')) {
+          throw new UnauthorizedError('Not authorized to access this route');
+        }
+        throw new BadRequestError(errorMessages.join(', '));
       }
-    ]
+      next();
+    }
+  ];
 };
 
-// Validation for creating or updating a drink order
-export const validateDrinkOrder = withValidationErrors([
-  body('drinkName').notEmpty().withMessage('Select a drink'),
+// Validation for creating and editing an order
+export const validateOrder = withValidationErrors([
+  body('drinkName')
+    .notEmpty()
+    .withMessage('Drink name is required'),
+
   body('size')
-    .isIn(Object.values(SIZE))
-    .withMessage('Select a valid size'),
+    .notEmpty()
+    .withMessage('Size is required')
+    .isIn(['Small', 'Medium', 'Large'])
+    .withMessage('Size must be one of Small, Medium, Large'),
+
+  body('quantity')
+    .isInt({ min: 1 })
+    .withMessage('Quantity must be at least 1')
+
+  // Removed totalPrice validation
 ]);
 
+// Validation for ID parameter (GET, PATCH, DELETE)
 export const validateIdParam = withValidationErrors([
-  param('id').custom(async (value, { req }) => {
-    const isValidMongoId = mongoose.Types.ObjectId.isValid(value);
-    if (!isValidMongoId) throw new BadRequestError('invalid MongoDB id');
-    const order = await OrderModel.findById(value);
-    if (!order) throw new NotFoundError(`no order with id ${value}`);
+  param('id')
+    .custom(async (value, { req }) => {
+      const isValidMongoId = mongoose.Types.ObjectId.isValid(value);
+      if (!isValidMongoId) {
+        throw new BadRequestError('Invalid MongoDB id');
+      }
 
-    const isAdminOrSuperAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
-    const isOwner = req.user.userId === order.orderedBy.toString();
+      const order = await OrderModel.findById(value);
+      if (!order) {
+        throw new NotFoundError(`No order with id ${value}`);
+      }
 
-    if (!isAdminOrSuperAdmin && !isOwner) {
-      throw new UnauthorizedError('not authorized to access this route');
-    }
-  }),
+      const isAdminOrSuperAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
+      const isOwner = req.user.userId === order.orderedBy.toString();
+
+      if (!isAdminOrSuperAdmin && !isOwner) {
+        throw new UnauthorizedError('Not authorized to access this route');
+      }
+    })
 ]);
 
-
+// Validation for user registration
 export const validateRegisterInput = withValidationErrors([
   body('name').notEmpty().withMessage('Name is required'),
-  body('email').notEmpty().withMessage(' Email is required')
-  .isEmail()
-  .withMessage(' Invalid email format')
-  .custom(async(email) => {
-     const user = await User.findOne({email})
-     if (user){
-      throw new BadRequestError(' Email already exists.');
-     }
-  }),
-  body('password').notEmpty().withMessage(' Password is required.').isLength({min:8}).withMessage(' Password must be at least 8 characters long'),
-  body('location').notEmpty().withMessage(' Location is required.'),
+
+  body('email')
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email format')
+    .custom(async (email) => {
+      const user = await User.findOne({ email });
+      if (user) {
+        throw new BadRequestError('Email already exists.');
+      }
+    }),
+
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required.')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long'),
+
+  body('location').notEmpty().withMessage('Location is required')
 ]);
 
+// Validation for user login
 export const validateLoginInput = withValidationErrors([
   body('email')
-  .notEmpty()
-  .withMessage(' Email is required.')
-  .isEmail()
-  .withMessage(' Invalid email format.'),
-  body('password').notEmpty().withMessage(' Password is required.'), 
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email format'),
+
+  body('password').notEmpty().withMessage('Password is required')
 ]);
 
-
+// Validation for updating user
 export const validateUpdateUserInput = withValidationErrors([
-  body('name').notEmpty().withMessage(' Name is required.'),
+  body('name').notEmpty().withMessage('Name is required'),
+
   body('email')
-    .notEmpty().withMessage(' Email is required.')
-    .isEmail().withMessage(' Invalid email format.')
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email format')
     .custom(async (email, { req }) => {
       const currentUser = await User.findById(req.user.userId);
-      if (!currentUser) throw new BadRequestError('User not found');
+      if (!currentUser) {
+        throw new BadRequestError('User not found');
+      }
 
-      // Only check if the new email is different from current one
       if (email !== currentUser.email) {
-        const userWithEmail = await User.findOne({ email });
-        if (userWithEmail) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
           throw new BadRequestError('Email already exists.');
         }
       }
     }),
-  body('location').notEmpty().withMessage('Location is required'),
+
+  body('location').notEmpty().withMessage('Location is required')
 ]);

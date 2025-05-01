@@ -16,16 +16,19 @@ const styles = {
   navbarWrapper: {
     backgroundColor: '#8B4513',
     width: '100%',
-    height: '10%',
+    height: '70px',
     position: 'fixed',
     top: 0,
     zIndex: 1000,
   },
   navbar: {
     display: 'flex',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '10px 20px',
+    padding: '12px 20px',
+    flexWrap: 'wrap',
+    gap: '10px',
   },
   navLeft: {
     display: 'flex',
@@ -48,9 +51,11 @@ const styles = {
   },
   navItems: {
     display: 'flex',
-    gap: '20px',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: '10px',
     alignItems: 'center',
-    paddingTop: '10px',
+    justifyContent: 'center',
   },
   navItem: {
     color: 'white',
@@ -90,6 +95,8 @@ const styles = {
     borderRadius: '5px',
     boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
     display: 'none',
+    minWidth: '100px',
+    zIndex: 10,
   },
   dropdownShow: {
     display: 'block',
@@ -100,18 +107,20 @@ const styles = {
     transition: 'background-color 0.3s ease',
   },
   pageContent: {
-    padding: '160px 30px 40px', // pushed down below navbar
+    padding: '140px 5vw 40px',
     textAlign: 'center',
     fontFamily: "'Playfair Display', serif",
   },
   form: {
     maxWidth: '600px',
+    width: '90%',
     margin: '0 auto',
     textAlign: 'left',
     backgroundColor: '#F5DEB3',
     padding: '30px',
     borderRadius: '8px',
     boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+    boxSizing: 'border-box',
   },
   inputField: {
     width: '100%',
@@ -119,16 +128,21 @@ const styles = {
     margin: '10px 0',
     borderRadius: '8px',
     border: '1px solid #ddd',
+    fontSize: '1rem',
+    boxSizing: 'border-box',
   },
   submitButton: {
-    padding: '12px 20px',
+    width: '100%',
+    padding: '12px',
     backgroundColor: '#8B4513',
     color: 'white',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: 'bold',
+    fontSize: '1rem',
     transition: 'background-color 0.3s',
+    boxSizing: 'border-box',
   },
   footer: {
     backgroundColor: '#8B4513',
@@ -146,8 +160,8 @@ const styles = {
     gap: '20px',
   },
   footerColumn: {
-    flex: '1 1 250px',
-    maxWidth: '300px',
+    flex: '1 1 100%',
+    maxWidth: '100%',
     marginBottom: '20px',
   },
   footerHeading: {
@@ -230,20 +244,6 @@ const Settings = () => {
           </div>
         </nav>
       </div>
-
-      {/* Optional Image */}
-      {/* <img
-        src="/images/Kapeng_Barako.jpg"
-        alt="Kape Kalakal Storefront"
-        style={{
-          width: '100%',
-          borderRadius: '12px',
-          objectFit: 'cover',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-          maxHeight: '400px',
-          marginTop: '120px',
-        }}
-      /> */}
 
       {/* Settings Form */}
       <div style={styles.pageContent}>

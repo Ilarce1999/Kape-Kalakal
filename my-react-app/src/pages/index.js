@@ -10,6 +10,7 @@ export { default as Checkout } from './checkout';
 export { default as Payment } from './payment';
 export { default as OrderHistory } from './orderHistory';
 export { default as Admin } from './admin';
+export { default as Users } from './admin/users';
 
 
 

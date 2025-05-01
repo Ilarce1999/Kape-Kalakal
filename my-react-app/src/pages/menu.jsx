@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate, useLoaderData, NavLink } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useLoaderData, NavLink, redirect } from 'react-router-dom';
 import customFetch from '../../../utils/customFetch';
 import { FaShoppingCart } from 'react-icons/fa';
 
@@ -360,7 +360,7 @@ const Menu = () => {
       setQuantity(1);
 
       customFetch.post('/drinks', {
-        orderedBy: 'userId',
+        orderedBy: 'user?._id',
         drinkName: selectedCoffee.name,
         size: size,
         quantity,
@@ -489,14 +489,33 @@ const Menu = () => {
       </div>
 
       <footer style={styles.footer}>
-        <div style={styles.footerLinks}>
-          <Link to="/" style={styles.footerLink}>Home</Link>
-          <Link to="/menu" style={styles.footerLink}>Products</Link>
-          <Link to="/aboutus" style={styles.footerLink}>About Us</Link>
-          <Link to="/settings" style={styles.footerLink}>Settings</Link>
-        </div>
-        <p>© 2025 Kape Kalakal, All rights reserved</p>
-      </footer>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', padding: '0 20px' }}>
+            <div style={{ flex: '1 1 250px', margin: '10px' }}>
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Customer Service</h4>
+              <p>Need help? Our team is here for you 24/7.</p>
+              <p>FAQs</p>
+              <p>Returns & Refunds</p>
+              <p>Order Tracking</p>
+            </div>
+
+            <div style={{ flex: '1 1 250px', margin: '10px' }}>
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Contact Us</h4>
+              <p>Email: support@kapekalakal.com</p>
+              <p>Phone: +63 912 345 6789</p>
+              <p>Address: 123 Brew Street, Makati, PH</p>
+            </div>
+
+            <div style={{ flex: '1 1 250px', margin: '10px' }}>
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>About Us</h4>
+              <p>Kape Kalakal is your go-to café for premium Filipino coffee blends. We're passionate about coffee and community.</p>
+              <p>Read Our Story</p>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '20px' }}>
+            <p>© 2025 Kape Kalakal. All Rights Reserved.</p>
+          </div>
+        </footer>
     </div>
   );
 };

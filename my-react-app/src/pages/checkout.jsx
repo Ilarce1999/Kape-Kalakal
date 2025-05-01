@@ -1,68 +1,86 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import customFetch from '../../../utils/customFetch'; // Assuming customFetch is set up for API calls
+import customFetch from '../../../utils/customFetch';
 
 const Checkout = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
 
-  // Retrieving order details and total price from sessionStorage or state
   const storedOrderDetails = JSON.parse(sessionStorage.getItem('orderDetails')) || [];
-  const storedTotalPrice = sessionStorage.getItem('totalPrice') || 0;
+  const storedTotalPrice = parseFloat(sessionStorage.getItem('totalPrice')) || 0;
+
   const { orderDetails = storedOrderDetails, totalPrice = storedTotalPrice } = state || {};
 
-  // Normalize the order details for uniformity (in case of discrepancies in drinkName)
   const normalizedOrderDetails = (orderDetails || []).map(item => ({
     ...item,
     drinkName: item.drinkName || item.name,
   }));
 
   const [cartItems, setCartItems] = useState(normalizedOrderDetails);
-  const [cartTotal, setCartTotal] = useState(parseFloat(totalPrice));
+  const [cartTotal, setCartTotal] = useState(totalPrice);
 
-  // Sync cart items and total price with sessionStorage when they change
   useEffect(() => {
     sessionStorage.setItem('orderDetails', JSON.stringify(cartItems));
-    sessionStorage.setItem('totalPrice', cartTotal);
+    sessionStorage.setItem('totalPrice', cartTotal.toString());
   }, [cartItems, cartTotal]);
 
-  const updateCartStorage = (updatedCart) => {
+  const updateCart = (updatedCart) => {
     const newTotal = updatedCart.reduce((sum, item) => sum + item.totalPrice, 0);
     setCartItems(updatedCart);
     setCartTotal(newTotal);
   };
 
-  // Navigate back to menu with the existing cart items
+  const fetchLatestOrders = async () => {
+    try {
+      const response = await customFetch.get('/drinks');
+      updateCart(response.data);
+    } catch (error) {
+      toast.error('Error fetching the latest orders.');
+    }
+  };
+
   const handleBackToMenu = () => {
     navigate('/menu', { state: { existingOrder: cartItems } });
   };
 
-  // Handle payment process
   const handlePayment = async () => {
     if (cartItems.length === 0) {
       toast.warn('No items in the cart to pay for.');
       return;
     }
-
+  
+    // Ensure all items are saved before proceeding
+    if (cartItems.some(item => !item._id)) {
+      toast.warn('Please finalize your order before paying.');
+      return;
+    }
+  
     toast.info('Redirecting to GCash payment page...');
-
+    
     setTimeout(async () => {
       try {
         const responses = await Promise.all(
           cartItems.map(item => {
+            const normalizedSize = item.size.charAt(0).toUpperCase() + item.size.slice(1).toLowerCase();
             return customFetch.post('/drinks', {
               drinkName: item.drinkName,
-              size: item.size,
+              size: normalizedSize,
               quantity: item.quantity,
               totalPrice: item.totalPrice,
             });
           })
         );
-
-        const failed = responses.find(res => res.status !== 201);
-        if (failed) throw new Error('One or more drink orders failed');
-
+  
+        if (responses.some(res => res.status !== 201)) {
+          throw new Error('One or more orders failed');
+        }
+  
+        const savedItems = responses.map(res => res.data);
+        setCartItems(savedItems);
+        sessionStorage.setItem('orderDetails', JSON.stringify(savedItems));
+        sessionStorage.setItem('totalPrice', cartTotal.toString());
+  
         toast.success('Payment successful!');
         sessionStorage.removeItem('orderDetails');
         sessionStorage.removeItem('totalPrice');
@@ -73,77 +91,83 @@ const Checkout = () => {
       }
     }, 2000);
   };
+  
+  
 
-  // Delete an order item from the cart
   const deleteOrderItem = async (index) => {
-    const itemToDelete = cartItems[index];
-
-    // If the item doesn't have an _id, it's an unsaved item
-    if (!itemToDelete._id) {
+    const item = cartItems[index];
+  
+    if (!item._id) {
+      // If no _id, delete locally (not yet saved to DB)
       const updatedCart = cartItems.filter((_, i) => i !== index);
-      updateCartStorage(updatedCart);
-      toast.success('Unsaved item removed from cart.');
+      updateCart(updatedCart);
+      toast.success('Item removed locally.');
       return;
     }
-
+  
+    // If item is already saved in DB, delete from DB too
     try {
-      // Remove item from database (if it has _id)
-      const response = await customFetch.delete(`/drinks/${itemToDelete._id}`);
+      const response = await customFetch.delete(`/drinks/${item._id}`);
       if (response.status === 200) {
-        // Update local cart if deletion is successful
         const updatedCart = cartItems.filter((_, i) => i !== index);
-        updateCartStorage(updatedCart);
-        toast.success('Item removed successfully');
+        updateCart(updatedCart);
+        toast.success('Item deleted successfully.');
       } else {
-        throw new Error('Failed to delete item from database');
+        throw new Error('Delete failed');
       }
     } catch (error) {
-      console.error('Failed to delete item:', error);
-      toast.error('Failed to remove item from cart.');
+      console.error('Delete error:', error);
+      toast.error('Could not delete item.');
     }
   };
+  
 
-  // Edit an order item (size and quantity)
   const editOrderItem = async (index) => {
     const item = cartItems[index];
-
-    const newSize = prompt('Enter new size (Small/Medium/Large):', item.size);
-    const newQuantity = parseInt(prompt('Enter new quantity:', item.quantity), 10);
-
-    if (!newSize || isNaN(newQuantity) || newQuantity < 1) {
-      toast.error('Invalid input');
+  
+    const newSizeInput = prompt('Enter new size (Small, Medium, Large):', item.size);
+    const newQty = parseInt(prompt('Enter new quantity:', item.quantity), 10);
+  
+    if (!newSizeInput || isNaN(newQty) || newQty < 1) {
+      toast.error('Invalid size or quantity.');
       return;
     }
-
-    const pricePerItem = item.totalPrice / item.quantity;
-
+  
+    const normalizedSize = newSizeInput.charAt(0).toUpperCase() + newSizeInput.slice(1).toLowerCase();
+    const priceEach = item.totalPrice / item.quantity;
+  
     const updatedItem = {
-      drinkName: item.drinkName,
-      size: newSize,
-      quantity: newQuantity,
-      totalPrice: pricePerItem * newQuantity,
+      ...item,
+      size: normalizedSize,
+      quantity: newQty,
+      totalPrice: priceEach * newQty,
     };
-
+  
     if (!item._id) {
-      // If the item doesn't have an _id (unsaved), update locally
+      // If item is unsaved, just update locally
       const updatedCart = [...cartItems];
-      updatedCart[index] = { ...item, ...updatedItem };
-      updateCartStorage(updatedCart);
-      toast.success('Unsaved item updated locally');
+      updatedCart[index] = updatedItem;
+      updateCart(updatedCart);
+      toast.success('Item updated locally.');
       return;
     }
-
+  
     try {
       const response = await customFetch.patch(`/drinks/${item._id}`, updatedItem);
-      const updatedCart = [...cartItems];
-      updatedCart[index] = response.data;
-      updateCartStorage(updatedCart);
-      toast.success('Item updated successfully');
+      if (response.status === 200) {
+        const updatedCart = [...cartItems];
+        updatedCart[index] = response.data;
+        updateCart(updatedCart);
+        toast.success('Item updated successfully.');
+      }
     } catch (error) {
-      console.error('Failed to update item:', error);
-      toast.error('Failed to update item in cart.');
+      console.error('Edit error:', error);
+      toast.error('Failed to update item.');
     }
   };
+  
+  
+  
 
   return (
     <div style={styles.pageWrapper}>
@@ -165,23 +189,19 @@ const Checkout = () => {
               </div>
             </div>
           ))}
-
           <div style={styles.totalPriceWrapper}>
             <div>Total Price:</div>
             <div>₱{cartTotal.toFixed(2)}</div>
           </div>
-
-          <button style={styles.paymentButton} onClick={handlePayment}>
-            Pay with GCash
-          </button>
+          <button style={styles.paymentButton} onClick={handlePayment}>Pay with GCash</button>
         </div>
       ) : (
-        <div style={styles.noItemsMessage}><p>No items in the cart.</p></div>
+        <div style={styles.noItemsMessage}>
+          <p>No items in the cart.</p>
+        </div>
       )}
 
-      <button style={styles.backButton} onClick={handleBackToMenu}>
-        Back to Menu
-      </button>
+      <button style={styles.backButton} onClick={handleBackToMenu}>Back to Menu</button>
     </div>
   );
 };
@@ -213,89 +233,61 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     padding: '12px 0',
-    borderBottom: '1px solid #ddd',
-    fontSize: '1.2rem',
+    borderBottom: '1px solid #fff',
   },
   itemDetails: {
     display: 'flex',
-    gap: '10px',
     flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   itemName: {
+    fontSize: '1.2rem',
     fontWeight: 'bold',
-    color: '#F5DEB3',
   },
   itemPrice: {
-    fontSize: '1.2rem',
+    color: '#FFD700',
+    fontSize: '1.1rem',
+  },
+  deleteButton: {
+    backgroundColor: '#D64D4D',
     color: '#fff',
+    border: 'none',
+    padding: '6px 12px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    marginRight: '10px',
   },
   totalPriceWrapper: {
-    marginTop: '20px',
     display: 'flex',
     justifyContent: 'space-between',
-    fontWeight: 'bold',
-    fontSize: '1.5rem',
-    color: '#F5DEB3',
+    marginTop: '20px',
+    fontSize: '1.1rem',
   },
-  checkoutButton: {
-    backgroundColor: '#8B4513',
-    color: '#fff',
-    padding: '14px 22px',
-    borderRadius: '25px',
-    fontSize: '1.3rem',
-    cursor: 'pointer',
+  paymentButton: {
+    backgroundColor: '#FFD700',
+    color: '#4B2E2E',
     border: 'none',
-    marginTop: '30px',
-    display: 'block',
+    padding: '12px 24px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '1.2rem',
     width: '100%',
-    maxWidth: '300px',
-    marginLeft: 'auto',
-    marginRight: 'auto',
+    marginTop: '20px',
+  },
+  backButton: {
+    marginTop: '20px',
+    backgroundColor: '#D64D4D',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    width: '100%',
   },
   noItemsMessage: {
     textAlign: 'center',
     fontSize: '1.2rem',
-    color: '#4B2E2E',
-  },
-  backButton: {
-    backgroundColor: '#F5DEB3',
-    color: '#4B2E2E',
-    padding: '14px 22px',
-    borderRadius: '25px',
-    fontSize: '1.3rem',
-    cursor: 'pointer',
-    border: 'none',
-    marginTop: '20px',
-    display: 'block',
-    width: '100%',
-    maxWidth: '300px',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-  },
-  deleteButton: {
-    backgroundColor: '#6E260E',
-    color: '#fff',
-    padding: '8px 16px',
-    borderRadius: '5px',
-    fontSize: '1rem',
-    cursor: 'pointer',
-    border: 'none',
-    marginRight: '10px',
-  },
-  paymentButton: {
-    backgroundColor: '#3B5998',
-    color: '#fff',
-    padding: '14px 22px',
-    borderRadius: '25px',
-    fontSize: '1.3rem',
-    cursor: 'pointer',
-    border: 'none',
-    marginTop: '20px',
-    display: 'block',
-    width: '100%',
-    maxWidth: '300px',
-    marginLeft: 'auto',
-    marginRight: 'auto',
+    marginTop: '30px',
   },
 };
 

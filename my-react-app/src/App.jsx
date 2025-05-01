@@ -16,16 +16,18 @@ import {
   OrderHistory,
   Admin,
 } from './pages';
+import Users from './pages/admin/users';
 
 // Actions and loaders
 import { action as registerAction } from './pages/register';
 import { action as loginAction } from './pages/login';
-import { loader as loginLoader } from './pages/login'; // Import loader for login
+import { loader as loginLoader } from './pages/login'; // 
 import { loader as dashboardLoader } from './pages/dashboard';
 import { loader as aboutusLoader } from './pages/aboutus';
 import { loader as menuLoader } from './pages/menu';
 import { loader as settingsLoader } from './pages/settings';
 import { loader as adminDashboardLoader } from './pages/admin';
+import { loader as usersLoader } from './pages/admin/users';
 
 const router = createBrowserRouter([
   {
@@ -56,6 +58,12 @@ const router = createBrowserRouter([
     path: '/admin',
     element: <Admin />,
     loader: adminDashboardLoader,
+    errorElement: <Error />,
+  },
+  {
+    path: '/admin/users',
+    element: <Users />,
+    loader: usersLoader,
     errorElement: <Error />,
   },
   {

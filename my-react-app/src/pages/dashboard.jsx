@@ -10,28 +10,27 @@ import {
 import customFetch from '../../../utils/customFetch';
 import { toast } from 'react-toastify';
 
-
 const styles = {
   navbarWrapper: {
     backgroundColor: '#8B4513',
     width: '100%',
-    height: '10%',  // Adjusted height
+    height: 'auto',
     position: 'fixed',
     top: 0,
-    zIndex: 1000
+    zIndex: 1000,
   },
-
   navbar: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
     padding: '10px 20px',
-    lineHeight: '1.8',  // Add line height to adjust the vertical position of text
+    lineHeight: '1.8',
   },
   navLeft: {
     display: 'flex',
-    alignItems: 'center', // Ensure the logo and text are vertically centered
-    gap: '10px', // Space between logo and text
+    alignItems: 'center',
+    gap: '10px',
   },
   logo: {
     width: '40px',
@@ -39,21 +38,19 @@ const styles = {
     borderRadius: '50%',
     objectFit: 'cover',
   },
-  
   logoText: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
     lineHeight: '1.8',
-    marginTop: '5px', // <-- add this
+    marginTop: '5px',
   },
-  
   navItems: {
     display: 'flex',
     gap: '20px',
-    alignItems: 'center', // Align items vertically
-    paddingTop: '10px',  // Adjust padding to move text down
+    alignItems: 'center',
+    paddingTop: '10px',
   },
   navItem: {
     color: 'white',
@@ -62,12 +59,12 @@ const styles = {
     textDecoration: 'none',
     cursor: 'pointer',
     transition: 'color 0.3s ease, background-color 0.3s ease',
-    padding: '5px 10px', // Ensure consistent padding for all links
+    padding: '5px 10px',
   },
   activeLink: {
-    backgroundColor: '#A0522D', // Highlight background for the active link
-    fontWeight: 'bold', // Make the text bold for the active link
-    borderRadius: '5px', // Rounded corners for the active link
+    backgroundColor: '#A0522D',
+    fontWeight: 'bold',
+    borderRadius: '5px',
   },
   heroSection: {
     width: '100%',
@@ -141,29 +138,6 @@ const styles = {
     fontFamily: "'Playfair Display', serif",
     marginTop: '40px',
   },
-  footerLinks: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '20px',
-    marginBottom: '10px',
-  },
-  footerLink: {
-    color: 'white',
-    textDecoration: 'none',
-    transition: 'color 0.3s ease',
-  },
-  toast: {
-    position: 'fixed',
-    bottom: '30px',
-    right: '30px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    padding: '12px 20px',
-    borderRadius: '8px',
-    fontSize: '1rem',
-    boxShadow: '0px 4px 12px rgba(0,0,0,0.2)',
-    zIndex: 2000,
-  },
   dropdown: {
     position: 'relative',
     cursor: 'pointer',
@@ -197,10 +171,40 @@ const styles = {
     alignItems: 'center',
     gap: '5px',
   },
-  icon: {
-    fontSize: '18px',
+  hamburger: {
+    display: 'none',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '30px',
+    height: '30px',
+    cursor: 'pointer',
   },
-  
+  bar: {
+    height: '3px',
+    width: '100%',
+    backgroundColor: 'white',
+    margin: '4px 0',
+    borderRadius: '2px',
+  },
+  navItemsMobile: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    marginTop: '10px',
+  },
+  toast: {
+    position: 'fixed',
+    bottom: '30px',
+    right: '30px',
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    fontSize: '1rem',
+    boxShadow: '0px 4px 12px rgba(0,0,0,0.2)',
+    zIndex: 2000,
+  },
 };
 
 const heroImages = [
@@ -226,15 +230,12 @@ const Dashboard = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [heroIndex, setHeroIndex] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setToastMessage('Welcome to the dashboard!');
     setToastVisible(true);
-
-    const timer = setTimeout(() => {
-      setToastVisible(false);
-    }, 3000);
-
+    const timer = setTimeout(() => setToastVisible(false), 3000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -246,8 +247,8 @@ const Dashboard = () => {
   }, []);
 
   const getLinkStyle = (path) => {
-    const isActive = location.pathname === path || (path === '/' && location.pathname === '/');
-    
+    const isActive =
+      location.pathname === path || (path === '/' && location.pathname === '/');
     return {
       ...styles.navItem,
       ...(isActive ? styles.activeLink : {}),
@@ -264,8 +265,38 @@ const Dashboard = () => {
     toast.success('Logging out...');
   };
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
   return (
-    <div style={{ position: 'relative', overflowX: 'hidden', minHeight: '100vh', backgroundColor: '#F5DEB3' }}>
+    <div
+      style={{
+        position: 'relative',
+        overflowX: 'hidden',
+        minHeight: '100vh',
+        backgroundColor: '#F5DEB3',
+      }}
+    >
+      <style>
+        {`
+          @media (max-width: 768px) {
+            .nav-items {
+              display: none;
+              flex-direction: column;
+              width: 100%;
+              background-color: #8B4513;
+            }
+            .nav-items.show {
+              display: flex;
+            }
+            .hamburger {
+              display: flex !important;
+            }
+          }
+        `}
+      </style>
+
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div style={styles.navbarWrapper}>
           <nav style={styles.navbar}>
@@ -273,11 +304,33 @@ const Dashboard = () => {
               <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
               <span style={styles.logoText}>Kape Kalakal</span>
             </div>
-            <div style={styles.navItems}>
-              <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
-              <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
-              <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
-              <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
+
+            <div
+              className="hamburger"
+              style={styles.hamburger}
+              onClick={toggleMobileMenu}
+            >
+              <div style={styles.bar}></div>
+              <div style={styles.bar}></div>
+              <div style={styles.bar}></div>
+            </div>
+
+            <div
+              className={`nav-items ${mobileMenuOpen ? 'show' : ''}`}
+              style={{ ...styles.navItems }}
+            >
+              <Link to="/dashboard" style={getLinkStyle('/dashboard')}>
+                HOME
+              </Link>
+              <Link to="/aboutus" style={getLinkStyle('/aboutus')}>
+                ABOUT US
+              </Link>
+              <Link to="/menu" style={getLinkStyle('/menu')}>
+                PRODUCTS
+              </Link>
+              <Link to="/settings" style={getLinkStyle('/settings')}>
+                SETTINGS
+              </Link>
               <div style={styles.dropdown} onClick={toggleDropdown}>
                 <button style={styles.dropdownButton}>
                   <span>{user?.name}</span>
@@ -299,7 +352,11 @@ const Dashboard = () => {
         </div>
 
         <div style={styles.heroSection}>
-          <img src={heroImages[heroIndex].src} alt="hero" style={styles.heroImage} />
+          <img
+            src={heroImages[heroIndex].src}
+            alt="hero"
+            style={styles.heroImage}
+          />
           <div style={styles.heroText}>{heroImages[heroIndex].text}</div>
         </div>
 
@@ -307,45 +364,68 @@ const Dashboard = () => {
           <div style={styles.box}>
             <img src="/images/box1.jpg" alt="Box 1" style={styles.boxImage} />
             <div style={styles.boxDescription}>
-              Discover our premium coffee beans sourced from local farmers, roasted to perfection for your satisfaction.
+              Discover our premium coffee beans sourced from local farmers,
+              roasted to perfection for your satisfaction.
               <br />
-              <Link to="/menu" style={styles.menuButton}>Explore Menu</Link>
+              <Link to="/menu" style={styles.menuButton}>
+                Explore Menu
+              </Link>
             </div>
           </div>
           <div style={styles.box}>
-            <img src="/images/welcome1.jpg" alt="Box 2" style={styles.boxImage} />
+            <img
+              src="/images/welcome1.jpg"
+              alt="Box 2"
+              style={styles.boxImage}
+            />
             <div style={styles.boxDescription}>
-              Experience the blend of tradition and innovation in every cup — crafted with love by Kape Kalakal.
+              Experience the blend of tradition and innovation in every cup —
+              crafted with love by Kape Kalakal.
               <br />
-              <Link to="/menu" style={styles.menuButton}>Browse Options</Link>
+              <Link to="/menu" style={styles.menuButton}>
+                Browse Options
+              </Link>
             </div>
           </div>
         </div>
 
         <footer style={styles.footer}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', padding: '0 20px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'space-around',
+              padding: '0 20px',
+            }}
+          >
             <div style={{ flex: '1 1 250px', margin: '10px' }}>
-              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Customer Service</h4>
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>
+                Customer Service
+              </h4>
               <p>Need help? Our team is here for you 24/7.</p>
               <p>FAQs</p>
               <p>Returns & Refunds</p>
               <p>Order Tracking</p>
             </div>
-
             <div style={{ flex: '1 1 250px', margin: '10px' }}>
-              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Contact Us</h4>
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>
+                Contact Us
+              </h4>
               <p>Email: support@kapekalakal.com</p>
               <p>Phone: +63 912 345 6789</p>
               <p>Address: 123 Brew Street, Makati, PH</p>
             </div>
-
             <div style={{ flex: '1 1 250px', margin: '10px' }}>
-              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>About Us</h4>
-              <p>Kape Kalakal is your go-to café for premium Filipino coffee blends. We're passionate about coffee and community.</p>
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>
+                About Us
+              </h4>
+              <p>
+                Kape Kalakal is your go-to café for premium Filipino coffee
+                blends. We're passionate about coffee and community.
+              </p>
               <p>Read Our Story</p>
             </div>
           </div>
-
           <div style={{ marginTop: '20px' }}>
             <p>© 2025 Kape Kalakal. All Rights Reserved.</p>
           </div>
