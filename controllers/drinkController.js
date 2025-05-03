@@ -4,15 +4,12 @@ import { StatusCodes } from 'http-status-codes';
 
 // Get all orders (for the logged-in user or all if admin logic is added later)
 export const getAllOrders = async (req, res) => {
-  try {
-    const orders = await OrderModel.find({ orderedBy: req.user.userId });
-    res.status(StatusCodes.OK).json(orders);
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: 'Error fetching orders.',
-      error: error.message
-    });
-  }
+  const orders = await Order.find({
+    orderedBy: req.user.userId,
+    isDeleted: { $ne: true },
+  }).sort({ createdAt: -1 });
+
+  res.status(200).json(orders);
 };
 
 // Create a new order
@@ -42,20 +39,16 @@ export const createOrder = async (req, res) => {
 export const getOrder = async (req, res) => {
   const { id } = req.params;
 
-  try {
-    const order = await OrderModel.findById(id);
+  const order = await Order.findOne({
+    _id: id,
+    orderedBy: req.user.userId,
+  });
 
-    if (!order || order.orderedBy.toString() !== req.user.userId) {
-      return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Order not found.' });
-    }
-
-    res.status(StatusCodes.OK).json(order);
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: 'Error fetching order.',
-      error: error.message
-    });
+  if (!order) {
+    return res.status(404).json({ msg: 'Order not found or not authorized' });
   }
+
+  res.status(200).json(order);
 };
 
 // Edit an existing order

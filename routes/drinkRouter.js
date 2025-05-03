@@ -1,9 +1,9 @@
 // routes/orderRoutes.js
 import { Router } from 'express';
 import {
-  getAllOrders,
-  getOrder,
   createOrder,
+  getAllOrders,
+  getOrder,     
   editOrder,
   deleteOrder
 } from '../controllers/drinkController.js';
@@ -21,12 +21,12 @@ router.use(authenticateUser); // All routes below require authentication
 
 // Routes for order operations
 router.route('/')
-  .get(getAllOrders)            // Fetch all orders
+  .get(getAllOrders)           
   .post(validateOrder, createOrder);  // Create a new order
 
 router.route('/:id')
-  .get(validateIdParam, getOrder)         // Get a specific order by ID
-  .patch(validateOrder, validateIdParam, editOrder)  // Update an order
-  .delete(validateIdParam, deleteOrder);  // Delete an order
+  .get(validateIdParam, getOrder)         
+  .patch(validateOrder, validateIdParam, editOrder)  
+  .delete(validateIdParam, deleteOrder);  
 
 export default router

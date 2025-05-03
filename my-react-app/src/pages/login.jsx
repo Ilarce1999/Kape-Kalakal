@@ -3,37 +3,25 @@ import {
   Link,
   useLocation,
   Form,
-  redirect,
   useNavigation,
   useActionData,
-  useLoaderData,
+  useNavigate,
 } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import customFetch from '../../../utils/customFetch.js';
 
-// ✅ Loader: Redirect if already logged in
-export const loader = async () => {
-  try {
-    const res = await customFetch.get('/users/current-user');
-    const user = res.data.user;
-    // Check if the logged-in user is an admin and redirect accordingly
-    if (user?.role === 'admin') {
-      return redirect('/admin'); // Admin dashboard
-    }
-    return redirect('/dashboard'); // Regular user dashboard
-  } catch (err) {
-    return null; // Not logged in, allow access to login page
-  }
+// ✅ Dummy loader (required by route setup)
+export const loader = () => {
+  return null;
 };
 
-// ✅ Action: Handle login and redirect based on role
+// ✅ Action: Handles form submission
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
   const errors = { msg: '' };
 
-  // Validate password length
   if (data.password.length < 3) {
     errors.msg = 'Password too short';
     return errors;
@@ -43,17 +31,16 @@ export const action = async ({ request }) => {
     const response = await customFetch.post('/auth/login', data);
     const user = response.data.user;
 
-    console.log('User logged in:', user); // Log the user object for debugging
-
     toast.success('Login successful');
 
-    // Redirect based on role
-    if (user.role === 'admin') {
-      console.log('Redirecting to admin dashboard');
-      return redirect('/admin'); // Redirect admin to the admin dashboard
+    // Return a redirect object based on user role
+    if (user.role === 'superadmin') {
+      return { redirect: '/superadmin' };
     }
-    console.log('Redirecting to user dashboard');
-    return redirect('/dashboard'); // Redirect regular users to the user dashboard
+    if (user.role === 'admin') {
+      return { redirect: '/admin' };
+    }
+    return { redirect: '/dashboard' };
   } catch (error) {
     toast.error(error?.response?.data?.msg || 'Login failed');
     return { msg: error?.response?.data?.msg || 'Login failed' };
@@ -67,16 +54,26 @@ const Login = () => {
   const toastShown = useRef(false);
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
-  const errors = useActionData(); // Handle errors returned from action
+  const errors = useActionData();
+  const navigate = useNavigate();
 
-  // Handle success message when coming from register page
+  // Show success toast after redirection (e.g. after register)
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     if (query.get('success') === 'true' && !toastShown.current) {
+      toast.success('Registration successful. Please log in.');
       toastShown.current = true;
     }
   }, [location]);
 
+  // Redirect to appropriate page after successful login
+  useEffect(() => {
+    if (errors?.redirect) {
+      navigate(errors.redirect);
+    }
+  }, [errors, navigate]);
+
+  // Inline styles
   const styles = {
     wrapper: {
       height: '100vh',
@@ -144,7 +141,6 @@ const Login = () => {
       <div style={styles.card}>
         <div style={styles.title}>Login</div>
         <Form method="post">
-          {/* Display error message if exists */}
           {errors?.msg && <p style={styles.errorMessage}>{errors.msg}</p>}
           <input
             name="email"

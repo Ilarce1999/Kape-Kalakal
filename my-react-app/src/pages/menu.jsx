@@ -308,6 +308,21 @@ const Menu = () => {
     }
   }, [location.state]);
 
+  {/* useEffect(() => {
+    const fetchCartOrders = async () => {
+      try {
+        const response = await axios.get("http://localhost:5100/api/v1/drinks", {
+          withCredentials: true,
+        });
+        setCartOrders(response.data);
+      } catch (err) {
+        console.error("Failed to fetch cart orders", err);
+      }
+    };
+  
+    fetchCartOrders();
+  }, []); */}
+
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
@@ -346,26 +361,34 @@ const Menu = () => {
     if (size && quantity > 0) {
       const sizePrice = size === 'Medium' ? 10 : size === 'Large' ? 25 : 0;
       const totalPriceForItem = (selectedCoffee.price + sizePrice) * quantity;
-
+  
       const newOrder = {
         ...selectedCoffee,
         size,
         quantity,
         totalPrice: totalPriceForItem,
       };
-
+  
       setOrderDetails((prevOrders) => [...prevOrders, newOrder]);
-      setIsModalOpen(false);
-      setSize('');
-      setQuantity(1);
-
+  
       customFetch.post('/drinks', {
-        orderedBy: 'user?._id',
+        orderedBy: user?._id,  // Ensure `user` is correctly fetched and available in state/context
         drinkName: selectedCoffee.name,
-        size: size,
+        size,
         quantity,
         totalPrice: totalPriceForItem,
-      }).catch(console.error);
+      })
+        .then(() => {
+          setIsModalOpen(false);
+          setSize('');  // Reset size
+          setQuantity(1);  // Reset quantity
+        })
+        .catch((err) => {
+          alert('Error adding to order. Please try again.');
+          console.error(err);  // Log the error for debugging
+        });
+    } else {
+      alert('Please select size and quantity.');
     }
   };
 
@@ -419,73 +442,6 @@ const Menu = () => {
             </div>
           </div>
         </nav>
-      </div>
-
-      <div style={styles.dashboardContent}>
-        <div style={styles.searchWrapper}>
-          <input
-            type="text"
-            placeholder="Search for your favorite coffee..."
-            style={styles.searchInput}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div style={styles.imageRow}>
-          {filteredCoffees.map((coffee, index) => (
-            <div key={index} style={styles.imageCard}>
-              <img src={coffee.image} alt={coffee.name} style={styles.cardImage} />
-              <div style={styles.coffeeName}>{coffee.name}</div>
-              <p style={styles.description}>{coffee.description}</p>
-              <div style={styles.orderButtonContainer}>
-                <button style={styles.orderButton} onClick={() => handleOrderClick(coffee)}>
-                  Add to Order
-                </button>
-                <div style={styles.priceTag}>₱{coffee.price}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {isModalOpen && (
-  <div style={styles.modalOverlay}>
-    <div style={styles.modal}>
-      <h2>{selectedCoffee.name}</h2>
-      <p>{selectedCoffee.description}</p>
-      <p>Price: ₱{selectedCoffee.price}</p>
-
-      <div>
-        <label>Size:</label>
-        <select value={size} onChange={(e) => setSize(e.target.value)}>
-          <option value="">Select size</option>
-          <option value="Small">Small</option>
-          <option value="Medium">Medium</option>
-          <option value="Large">Large</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Quantity:</label>
-        <input
-          type="number"
-          value={quantity}
-          onChange={(e) => setQuantity(Number(e.target.value))}
-          min="1"
-        />
-      </div>
-
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button style={{ ...styles.modalButton, backgroundColor: '#8B4513', color: 'white' }} onClick={handleAddToOrder}>
-          Add to Cart
-        </button>
-        <button style={{ ...styles.modalButton, backgroundColor: '#ccc', color: '#333' }} onClick={() => setIsModalOpen(false)}>
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
       </div>
 
       <footer style={styles.footer}>

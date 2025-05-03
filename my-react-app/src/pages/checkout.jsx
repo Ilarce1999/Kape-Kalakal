@@ -49,82 +49,86 @@ const Checkout = () => {
       toast.warn('No items in the cart to pay for.');
       return;
     }
-  
-    // Ensure all items are saved before proceeding
+
     if (cartItems.some(item => !item._id)) {
       toast.warn('Please finalize your order before paying.');
       return;
     }
-  
+
     toast.info('Redirecting to GCash payment page...');
-    
-    setTimeout(async () => {
-      try {
-        const responses = await Promise.all(
-          cartItems.map(item => {
-            const normalizedSize = item.size.charAt(0).toUpperCase() + item.size.slice(1).toLowerCase();
-            return customFetch.post('/drinks', {
-              drinkName: item.drinkName,
-              size: normalizedSize,
-              quantity: item.quantity,
-              totalPrice: item.totalPrice,
-            });
-          })
-        );
-  
-        if (responses.some(res => res.status !== 201)) {
-          throw new Error('One or more orders failed');
-        }
-  
-        const savedItems = responses.map(res => res.data);
-        setCartItems(savedItems);
-        sessionStorage.setItem('orderDetails', JSON.stringify(savedItems));
-        sessionStorage.setItem('totalPrice', cartTotal.toString());
-  
-        toast.success('Payment successful!');
-        sessionStorage.removeItem('orderDetails');
-        sessionStorage.removeItem('totalPrice');
-        navigate('/orderHistory');
-      } catch (error) {
-        console.error('Payment error:', error);
-        toast.error('Payment failed. Please try again.');
+
+    try {
+      const responses = await Promise.all(
+        cartItems.map(item => {
+          const normalizedSize = item.size.charAt(0).toUpperCase() + item.size.slice(1).toLowerCase();
+          const payload = {
+            drinkName: item.drinkName,
+            size: normalizedSize,
+            quantity: item.quantity,
+            totalPrice: item.totalPrice,
+          };
+          return customFetch.post('/drinks', payload);
+        })
+      );
+
+      if (responses.some(res => res.status !== 201)) {
+        throw new Error('One or more orders failed');
       }
-    }, 2000);
+
+      const savedItems = responses.map(res => res.data);
+      setCartItems(savedItems);
+      sessionStorage.setItem('orderDetails', JSON.stringify(savedItems));
+      sessionStorage.setItem('totalPrice', cartTotal.toString());
+
+      toast.success('Payment successful!');
+      sessionStorage.removeItem('orderDetails');
+      sessionStorage.removeItem('totalPrice');
+      navigate('/orderHistory');
+    } catch (error) {
+      toast.error('Payment failed. Please try again.');
+    }
   };
-  
-  
 
   const deleteOrderItem = async (index) => {
     const item = cartItems[index];
   
+    // If no ID, just remove locally
     if (!item._id) {
-      // If no _id, delete locally (not yet saved to DB)
       const updatedCart = cartItems.filter((_, i) => i !== index);
       updateCart(updatedCart);
       toast.success('Item removed locally.');
       return;
     }
   
-    // If item is already saved in DB, delete from DB too
+    // Soft delete in backend
     try {
-      const response = await customFetch.delete(`/drinks/${item._id}`);
+      const response = await customFetch.patch(`/drinks/${item._id}`, {
+        isDeleted: true, // You must support this in the backend
+      });
+  
       if (response.status === 200) {
         const updatedCart = cartItems.filter((_, i) => i !== index);
         updateCart(updatedCart);
-        toast.success('Item deleted successfully.');
+  
+        if (updatedCart.length === 0) {
+          sessionStorage.removeItem('orderDetails');
+          sessionStorage.removeItem('totalPrice');
+        }
+  
+        toast.success('Item marked as deleted successfully.');
       } else {
-        throw new Error('Delete failed');
+        throw new Error('Failed to soft delete');
       }
     } catch (error) {
-      console.error('Delete error:', error);
       toast.error('Could not delete item.');
     }
   };
   
+  
+  
 
   const editOrderItem = async (index) => {
     const item = cartItems[index];
-  
     const newSizeInput = prompt('Enter new size (Small, Medium, Large):', item.size);
     const newQty = parseInt(prompt('Enter new quantity:', item.quantity), 10);
   
@@ -135,25 +139,30 @@ const Checkout = () => {
   
     const normalizedSize = newSizeInput.charAt(0).toUpperCase() + newSizeInput.slice(1).toLowerCase();
     const priceEach = item.totalPrice / item.quantity;
+    const updatedTotalPrice = priceEach * newQty;
   
-    const updatedItem = {
-      ...item,
-      size: normalizedSize,
-      quantity: newQty,
-      totalPrice: priceEach * newQty,
-    };
-  
+    // Update in local cart if not yet saved
     if (!item._id) {
-      // If item is unsaved, just update locally
       const updatedCart = [...cartItems];
-      updatedCart[index] = updatedItem;
+      updatedCart[index] = {
+        ...item,
+        size: normalizedSize,
+        quantity: newQty,
+        totalPrice: updatedTotalPrice,
+      };
       updateCart(updatedCart);
       toast.success('Item updated locally.');
       return;
     }
   
+    // Update in backend
     try {
-      const response = await customFetch.patch(`/drinks/${item._id}`, updatedItem);
+      const response = await customFetch.patch(`/drinks/${item._id}`, {
+        size: normalizedSize,
+        quantity: newQty,
+        totalPrice: updatedTotalPrice,
+      });
+  
       if (response.status === 200) {
         const updatedCart = [...cartItems];
         updatedCart[index] = response.data;
@@ -161,13 +170,9 @@ const Checkout = () => {
         toast.success('Item updated successfully.');
       }
     } catch (error) {
-      console.error('Edit error:', error);
       toast.error('Failed to update item.');
     }
   };
-  
-  
-  
 
   return (
     <div style={styles.pageWrapper}>
@@ -245,12 +250,12 @@ const styles = {
     fontWeight: 'bold',
   },
   itemPrice: {
-    color: '#FFD700',
+    color: '#D2B48C',
     fontSize: '1.1rem',
   },
   deleteButton: {
-    backgroundColor: '#D64D4D',
-    color: '#fff',
+    backgroundColor: '#fff',
+    color: '#4B2E19',
     border: 'none',
     padding: '6px 12px',
     borderRadius: '4px',
@@ -264,7 +269,7 @@ const styles = {
     fontSize: '1.1rem',
   },
   paymentButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#D2B48C',
     color: '#4B2E2E',
     border: 'none',
     padding: '12px 24px',
@@ -276,7 +281,7 @@ const styles = {
   },
   backButton: {
     marginTop: '20px',
-    backgroundColor: '#D64D4D',
+    backgroundColor: '#4B2E19',
     color: '#fff',
     border: 'none',
     padding: '10px 20px',

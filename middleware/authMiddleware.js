@@ -20,14 +20,11 @@ export const authenticateUser = async (req, res, next) => {
 };
 
 // ✅ Authorizes access based on allowed user roles
-export const authorizePermissions = (...allowedRoles) => {
+export const authorizePermissions = (...roles) => {
   return (req, res, next) => {
-    const userRole = req.user?.role;
-
-    if (!userRole || !allowedRoles.includes(userRole)) {
-      throw new UnauthorizedError('Unauthorized to access this route');
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Permission denied' });
     }
-
     next();
   };
 };

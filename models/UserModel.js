@@ -1,31 +1,47 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const UserSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  password: String,
-
-  lastName: {
+  name: {
     type: String,
-    default: 'lastName',
+    required: true,
   },
-
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: 6,
+  },
   location: {
     type: String,
-    default: 'my city',
   },
-
   role: {
     type: String,
-    enum: ['user', 'admin', 'superadmin'], 
     default: 'user',
   },
+}, {
+  timestamps: true,
 });
 
-UserSchema.methods.toJSON = function () {
-  let obj = this.toObject();
-  delete obj.password;
-  return obj;
+// Pre-save middleware to hash password
+UserSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+UserSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
 export default mongoose.model('User', UserSchema);
