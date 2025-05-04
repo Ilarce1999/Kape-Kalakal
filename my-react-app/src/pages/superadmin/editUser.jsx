@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import customFetch from '../../../../utils/customFetch.js';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 const styles = {
   navbarWrapper: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#A0522D',
     width: '100%',
     height: '70px',
     position: 'fixed',
@@ -19,171 +18,242 @@ const styles = {
     alignItems: 'center',
     padding: '0 20px',
     height: '100%',
-  },
-  logoText: {
     color: 'white',
+  },
+  brand: {
+    display: 'flex',
+    alignItems: 'center',
     fontWeight: 'bold',
     fontSize: '1.5rem',
     fontFamily: "'Playfair Display', serif",
   },
-  button: {
-    width: '100%',
+  dropdown: {
+    position: 'relative',
+    display: 'inline-block',
+  },
+  dropdownContent: {
+    display: 'none',
+    position: 'absolute',
+    backgroundColor: '#f1f1f1',
+    minWidth: '120px',
+    boxShadow: '0px 8px 16px 0px rgba(0,0,0,0.2)',
+    zIndex: 1,
+    right: 0,
+  },
+  dropdownItem: {
+    color: 'black',
     padding: '10px',
-    backgroundColor: '#8B4513',
-    color: 'white',
-    fontWeight: 'bold',
+    textDecoration: 'none',
+    display: 'block',
+    background: 'none',
     border: 'none',
-    borderRadius: '5px',
+    width: '100%',
+    textAlign: 'left',
     cursor: 'pointer',
-    marginTop: '10px',
+  },
+  container: {
+    paddingTop: '80px',
+    backgroundColor: '#F5DEB3',
+    color: 'white',
+    minHeight: '100vh',
+  },
+  content: {
+    padding: '40px',
+    maxWidth: '500px',
+    margin: 'auto',
+    border: '1px solid #ccc',
+    borderRadius: '10px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    backgroundColor: '#A0522D',
   },
   backButton: {
     padding: '10px 20px',
-    backgroundColor: '#A0522D',
-    color: 'white',
+    fontSize: '16px',
+    backgroundColor: '#ccc',
+    color: '#000',
     border: 'none',
-    borderRadius: '5px',
+    borderRadius: '6px',
     cursor: 'pointer',
+    marginTop: '20px',
+  },
+  title: {
+    textAlign: 'center',
+    marginBottom: '30px',
+    fontSize: '24px',
+    color: '#000000',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  inputGroup: {
     marginBottom: '20px',
   },
-  formContainer: {
-    paddingTop: '100px',
-    maxWidth: '400px',
-    margin: 'auto',
+  label: {
+    display: 'block',
+    marginBottom: '8px',
+    fontWeight: 'bold',
+    color: '#000000',
   },
   input: {
     width: '100%',
     padding: '10px',
-    marginBottom: '10px',
-    borderRadius: '5px',
+    fontSize: '16px',
+    borderRadius: '6px',
     border: '1px solid #ccc',
+  },
+  select: {
+    width: '100%',
+    padding: '10px',
+    fontSize: '16px',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    backgroundColor: 'white',
+  },
+  button: {
+    padding: '12px',
+    fontSize: '16px',
+    backgroundColor: '#2E1503',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
   },
 };
 
-const EditUser = ({ users, setUsers }) => {
-  const [user, setUser] = useState({
+const EditUser = () => {
+  const { userId } = useParams();
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     location: '',
     role: '',
   });
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const { userId } = useParams();
+  const username = localStorage.getItem('username') || 'Super Admin';
 
-  // Fetch user data when the page loads
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get(`/users/${userId}`);
-        if (res.data) {
-          setUser(res.data); // Set fetched user data into the state
-          setLoading(false);
-        }
+        const response = await customFetch.get(`/users/users/${userId}`);
+        setUser(response.data);
+        setFormData({
+          name: response.data.name,
+          email: response.data.email,
+          location: response.data.location,
+          role: response.data.role,
+        });
       } catch (error) {
-        console.error('Error fetching user:', error);
-        setLoading(false);
+        toast.error('Failed to fetch user data');
       }
     };
-
-    if (userId) fetchUser();
+    fetchUser();
   }, [userId]);
 
   const handleChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const updatedUser = { ...user };
-      if (!updatedUser.password) {
-        delete updatedUser.password; // Ensure password is not sent unless updated
-      }
-  
-      const response = await axios.patch(`/users/${userId}`, updatedUser);
-      if (response.status === 200) {
-        toast.success('User updated successfully!');
-        // Update the user list in the state
-        const updatedUsers = users.map((u) =>
-          u._id === userId ? { ...u, ...user } : u
-        );
-        setUsers(updatedUsers);
-  
-        // Redirect or update UI after successful update
-        navigate('/superadmin/allUsers');
-      } else {
-        toast.error('Error updating user. Please try again.');
-      }
+      await customFetch.patch(`/users/users/${userId}`, formData);
+      toast.success('User updated successfully');
+      navigate('/superadmin/allUsers');
     } catch (error) {
-      console.error('Error updating user:', error);
-      toast.error('Error updating user. Please try again.');
+      toast.error('Failed to update user');
     }
   };
-  
 
-  if (loading) {
-    return <div>Loading...</div>; // Show loading state until data is fetched
-  }
+  const handleBack = () => {
+    navigate('/superadmin/allUsers');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    navigate('/login');
+  };
+
+  const toggleDropdown = () => {
+    const content = document.getElementById('dropdown-content');
+    if (content) {
+      content.style.display = content.style.display === 'block' ? 'none' : 'block';
+    }
+  };
+
+  if (!user) return <p style={{ textAlign: 'center', marginTop: '100px' }}>Loading user data...</p>;
 
   return (
     <div>
       {/* Navbar */}
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
-          <span style={styles.logoText}>Kape Kalakal - Super Admin</span>
+          <div style={styles.brand}>Kape Kalakal</div>
+          <div style={styles.dropdown}>
+            <button onClick={toggleDropdown} style={{ background: 'none', border: 'none', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>
+              {username} ▼
+            </button>
+            <div id="dropdown-content" style={styles.dropdownContent}>
+              <button onClick={handleLogout} style={styles.dropdownItem}>Logout</button>
+            </div>
+          </div>
         </nav>
       </div>
 
       {/* Form */}
-      <div style={styles.formContainer}>
-        <h2>Edit User</h2>
-
-        <Link to="/superadmin/allUsers">
-          <button style={styles.backButton}>Back to All Users</button>
-        </Link>
-
-        <form onSubmit={handleSubmit}>
-          <input
-            style={styles.input}
-            type="text"
-            name="name"
-            value={user.name}
-            onChange={handleChange}
-            placeholder="Full Name (e.g. John Doe)"
-            required
-          />
-          <input
-            style={styles.input}
-            type="email"
-            name="email"
-            value={user.email}
-            onChange={handleChange}
-            placeholder="Email (e.g. john.doe@example.com)"
-            required
-          />
-          <input
-            style={styles.input}
-            type="text"
-            name="location"
-            value={user.location}
-            onChange={handleChange}
-            placeholder="Location (e.g. Manila)"
-            required
-          />
-          <input
-            style={styles.input}
-            type="text"
-            name="role"
-            value={user.role}
-            onChange={handleChange}
-            placeholder="Role (e.g. Admin)"
-            required
-          />
-          <button style={styles.button} type="submit">
-            Update User
-          </button>
-        </form>
+      <div style={styles.container}>
+        <div style={styles.content}>
+          <h2 style={styles.title}>Edit User</h2>
+          <form onSubmit={handleSubmit} style={styles.form}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Name</label>
+              <input
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                style={styles.input}
+              />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Email</label>
+              <input
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                style={styles.input}
+              />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Location</label>
+              <input
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                style={styles.input}
+              />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Role</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                style={styles.select}
+              >
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="superadmin">Super Admin</option>
+              </select>
+            </div>
+            <button type="submit" style={styles.button}>Update User</button>
+          </form>
+          <button onClick={handleBack} style={styles.backButton}>Back to All Users</button>
+        </div>
       </div>
     </div>
   );

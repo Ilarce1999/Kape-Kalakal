@@ -97,6 +97,7 @@ const router = createBrowserRouter([
     // loader: allUsersLoader,
     errorElement: <Error />,
   },
+
   {
     path: '/superadmin/deleteUser/:userId',
     element: <DeleteUser />,

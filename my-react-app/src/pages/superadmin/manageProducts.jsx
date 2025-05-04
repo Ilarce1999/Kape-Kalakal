@@ -14,9 +14,10 @@ const styles = {
   navbar: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center', // vertically center text and logo
+    alignItems: 'center',
     padding: '0 20px',
     height: '100%',
+    flexWrap: 'wrap', // To allow the navbar to wrap on smaller screens
   },
   navLeft: {
     display: 'flex',
@@ -39,6 +40,7 @@ const styles = {
     display: 'flex',
     gap: '20px',
     alignItems: 'center',
+    flexWrap: 'wrap', // Allow wrapping for responsiveness
   },
   navItem: {
     color: 'white',
@@ -84,8 +86,6 @@ const styles = {
   icon: {
     fontSize: '18px',
   },
-
-  // Form and product table styling
   content: {
     paddingTop: '100px',
     padding: '40px 20px',
@@ -121,6 +121,7 @@ const styles = {
   table: {
     width: '100%',
     borderCollapse: 'collapse',
+    marginTop: '20px',
   },
   th: {
     textAlign: 'left',
@@ -149,6 +150,33 @@ const styles = {
   deleteBtn: {
     backgroundColor: '#f44336',
     color: 'white',
+  },
+  '@media (max-width: 768px)': {
+    navbar: {
+      flexDirection: 'column',
+      justifyContent: 'center',
+      padding: '10px',
+    },
+    navItems: {
+      flexDirection: 'column',
+      gap: '10px',
+      width: '100%',
+      textAlign: 'center',
+    },
+    content: {
+      paddingTop: '120px', // Make space for navbar on small screens
+      padding: '20px',
+    },
+    form: {
+      width: '100%',
+      maxWidth: 'none',
+    },
+    button: {
+      width: '100%',
+    },
+    table: {
+      fontSize: '14px',
+    },
   },
 };
 
@@ -202,16 +230,16 @@ const ManageProducts = () => {
         });
 
         // Add the new product to the table (client-side)
-        setProducts([...products, res.data]);
+        setProducts([...products, res.data]);  // Append the newly created product to the products list
       }
 
       // Clear the form and reset the editing state
       setForm({ name: '', description: '', price: '', image: null });
       setEditingId(null);
 
-      // Optionally, fetch the updated product list from the server
-      // fetchProducts();
-      navigate('/superadmin');
+      // Optionally, you can fetch the updated product list again from the server
+      fetchProducts();
+      navigate('/superadmin/manageProducts'); // Redirect to the same page after submission
     } catch (error) {
       console.error('Error submitting product:', error);
     }

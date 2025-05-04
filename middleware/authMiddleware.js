@@ -22,9 +22,18 @@ export const authenticateUser = async (req, res, next) => {
 // ✅ Authorizes access based on allowed user roles
 export const authorizePermissions = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    console.log('User Role:', req.user?.role); // Log the user's role for debugging
+    if (!roles.includes(req.user?.role)) {
       return res.status(403).json({ message: 'Permission denied' });
     }
     next();
   };
+};
+
+// ✅ Check if the user is a SuperAdmin
+export const isSuperAdmin = (req, res, next) => {
+  if (req.user.role !== 'superadmin') {
+    return res.status(403).json({ message: 'Permission denied' });
+  }
+  next();
 };

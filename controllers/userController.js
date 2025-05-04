@@ -57,51 +57,79 @@ export const getAllUsers = async (req, res) => {
 
 export const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    const { id } = req.params;
+    console.log("Looking up user ID:", id);
+    const user = await User.findById(id);
+    if (!user) {
+      console.log("User not found for ID:", id);
+      return res.status(404).json({ msg: "User not found" });
+    }
     res.status(200).json(user);
   } catch (error) {
-    res.status(400).json({ message: 'Failed to fetch user' });
+    console.error("getUserById error:", error.message);
+    res.status(500).json({ msg: "Server error" });
   }
 };
-  
+
+
+// Update user by ID
 export const updateUserById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedData = { ...req.body };
+  const { id } = req.params;
+  const { name, email, location, role, password } = req.body;
 
-    // Only hash the password if it's being updated
-    if (req.body.password) {
-      const salt = await bcrypt.genSalt(10);
-      updatedData.password = await bcrypt.hash(req.body.password, salt);
+  try {
+    // Find the user by ID
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    const updated = await User.findByIdAndUpdate(id, updatedData, { new: true });
+    // Update fields, don't update password unless provided
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.location = location || user.location;
+    user.role = role || user.role;
 
-    if (!updated) return res.status(404).json({ message: 'User not found' });
+    // Only update password if it's provided
+    if (password) {
+      if (password.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      }
+      // Hash the new password
+      user.password = await bcrypt.hash(password, 10);
+    }
 
-    res.status(200).json(updated);
+    // Save the updated user
+    await user.save();
+
+    // Return the updated user
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      location: user.location,
+      role: user.role,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(400).json({ message: 'Failed to update user' });
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-  
-  // Soft delete user by ID
-    export const deleteUserById = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const deletedUser = await User.findByIdAndDelete(id);
-  
-      if (!deletedUser) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-  
-      res.status(200).json({ message: 'User deleted successfully' });
-    } catch (error) {
-      res.status(400).json({ message: 'Failed to delete user' });
+// Controller for deleting user hard
+export const deleteUserById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
     }
-  };
+    res.status(200).json({ msg: 'User deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ msg: 'Server Error' });
+  }
+};
+
+
 
  

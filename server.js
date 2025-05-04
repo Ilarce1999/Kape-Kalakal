@@ -85,7 +85,7 @@ app.use((err, req, res, next) => {
 });
 
 
-const port = process.env.PORT || 5100
+const port = process.env.PORT || 5200
 
 try{
     await mongoose.connect(process.env.MONGO_URL)

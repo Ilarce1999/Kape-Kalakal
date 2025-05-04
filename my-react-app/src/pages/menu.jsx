@@ -311,7 +311,7 @@ const Menu = () => {
   {/* useEffect(() => {
     const fetchCartOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:5100/api/v1/drinks", {
+        const response = await axios.get("http://localhost:5200/api/v1/drinks", {
           withCredentials: true,
         });
         setCartOrders(response.data);
