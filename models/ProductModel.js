@@ -15,11 +15,11 @@ const ProductSchema = new mongoose.Schema({
     min: 0
   },
   image: {
-     type: String, 
-     required: false ,
+    type: String,  // Store the path of the image file
+    required: false,
   }
 }, {
-  timestamps: true // This will create `createdAt` and `updatedAt` fields automatically
+  timestamps: true // Automatically create `createdAt` and `updatedAt` fields
 });
 
 export default mongoose.model('Product', ProductSchema);

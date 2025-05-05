@@ -12,20 +12,20 @@ import { toast } from 'react-toastify';
 
 const styles = {
   navbarWrapper: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#5a3b22', // Same as AboutUs navbar background color
     width: '100%',
-    height: 'auto',
+    height: '70px', // Match the height with AboutUs navbar
     position: 'fixed',
     top: 0,
     zIndex: 1000,
+    fontFamily: "'Playfair Display', serif", // Same font family
   },
   navbar: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    flexWrap: 'wrap',
     padding: '10px 20px',
-    lineHeight: '1.8',
+    height: '100%',
   },
   navLeft: {
     display: 'flex',
@@ -62,9 +62,7 @@ const styles = {
     padding: '5px 10px',
   },
   activeLink: {
-    backgroundColor: '#A0522D',
-    fontWeight: 'bold',
-    borderRadius: '5px',
+    color: '#FFD700', // Active link color from AboutUs
   },
   heroSection: {
     width: '100%',
@@ -111,10 +109,10 @@ const styles = {
   },
   boxDescription: {
     padding: '30px 25px',
-    backgroundColor: '#D2B48C',
+    backgroundColor: '#D2B48C', // Same background as AboutUs content
     fontFamily: "'Playfair Display', serif",
     fontSize: '1.2rem',
-    color: '#4B2E19',
+    color: '#4B2E19', // Same text color as AboutUs content
     textAlign: 'center',
   },
   menuButton: {
@@ -124,13 +122,13 @@ const styles = {
     backgroundColor: 'transparent',
     color: '#371D10',
     textDecoration: 'none',
-    border: '2px solid #8B4513',
+    border: '2px solid #8B4513', // Match the border color
     borderRadius: '8px',
     fontWeight: 'bold',
     transition: 'background-color 0.3s ease, color 0.3s ease',
   },
   footer: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#5a3b22', // Same as AboutUs footer background color
     color: 'white',
     textAlign: 'center',
     padding: '20px 0',
@@ -146,7 +144,7 @@ const styles = {
     position: 'absolute',
     top: '100%',
     right: '0',
-    backgroundColor: '#fff',
+    backgroundColor: '#5a3b22',
     color: '#371D10',
     padding: '10px 20px',
     borderRadius: '5px',
@@ -275,7 +273,7 @@ const Dashboard = () => {
         position: 'relative',
         overflowX: 'hidden',
         minHeight: '100vh',
-        backgroundColor: '#F5DEB3',
+        backgroundColor: '#2c1b0b',
       }}
     >
       <style>

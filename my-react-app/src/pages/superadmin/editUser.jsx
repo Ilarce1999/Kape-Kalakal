@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 
 const styles = {
   navbarWrapper: {
-    backgroundColor: '#A0522D',
+    backgroundColor: '#5a3b22',
     width: '100%',
     height: '70px',
     position: 'fixed',
@@ -64,7 +64,7 @@ const styles = {
     border: '1px solid #ccc',
     borderRadius: '10px',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-    backgroundColor: '#A0522D',
+    backgroundColor: '#5a3b22',
   },
   backButton: {
     padding: '10px 20px',

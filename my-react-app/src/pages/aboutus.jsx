@@ -36,11 +36,15 @@ const AboutUs = () => {
       cursor: 'pointer',
       transition: 'color 0.3s ease, background-color 0.3s ease',
       padding: '5px 10px',
+      fontFamily: "'Playfair Display', serif",
       ...(isActive ? {
-        backgroundColor: '#A0522D',
-        fontWeight: 'bold',
+        color: '#FFD700', // Yellow background for active links
         borderRadius: '5px',
-      } : {})
+      } : {
+        ':hover': {
+          backgroundColor: '#FFD700', // Yellow on hover
+        },
+      })
     };
   };
 
@@ -57,11 +61,13 @@ const AboutUs = () => {
       position: 'relative',
       overflowX: 'hidden',
       minHeight: '100vh',
-      backgroundColor: '#F5DEB3',
+      backgroundColor: '#2c1b0b', // Same as Menu page background color
       paddingTop: '60px',
+      fontFamily: "'Playfair Display', serif", // Same font family
+      color: 'white',
     },
     navbarWrapper: {
-      backgroundColor: '#8B4513',
+      backgroundColor: '#5a3b22', // Same as Menu page navbar background color
       width: '100%',
       height: '70px',
       position: 'fixed',
@@ -90,7 +96,6 @@ const AboutUs = () => {
       color: 'white',
       fontWeight: 'bold',
       fontSize: isMobile ? '1.2rem' : '1.5rem',
-      fontFamily: "'Playfair Display', serif",
       marginTop: '5px',
     },
     navItems: {
@@ -101,7 +106,7 @@ const AboutUs = () => {
       position: isMobile ? 'absolute' : 'static',
       top: '60px',
       right: 0,
-      backgroundColor: isMobile ? '#8B4513' : 'transparent',
+      backgroundColor: isMobile ? '#5a3b22' : 'transparent',
       padding: isMobile ? '10px' : 0,
       zIndex: 999,
     },
@@ -123,8 +128,8 @@ const AboutUs = () => {
       position: 'absolute',
       top: '100%',
       right: 0,
-      backgroundColor: '#fff',
-      color: '#371D10',
+      backgroundColor: '#5a3b22',
+      color: 'white',
       padding: '10px 20px',
       borderRadius: '5px',
       boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
@@ -166,16 +171,16 @@ const AboutUs = () => {
     title: {
       fontFamily: "'Playfair Display', serif",
       fontSize: '2rem',
-      color: '#4B2E2E',
+      color: '#FFD700',
       marginBottom: '20px',
     },
     paragraph: {
       fontSize: '1.1rem',
-      color: '#333',
+      color: '#FFF',
       lineHeight: '1.8',
     },
     footer: {
-      backgroundColor: '#8B4513',
+      backgroundColor: '#5a3b22',
       color: 'white',
       textAlign: 'center',
       padding: '20px 0',
@@ -277,12 +282,9 @@ const AboutUs = () => {
           <div style={styles.footerColumn}>
             <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>About Us</h4>
             <p>Kape Kalakal is your go-to café for premium Filipino coffee blends. We're passionate about coffee and community.</p>
-            <p>Read Our Story</p>
           </div>
         </div>
-        <div style={{ marginTop: '20px' }}>
-          <p>© 2025 Kape Kalakal. All Rights Reserved.</p>
-        </div>
+        <p>&copy; 2025 Kape Kalakal. All Rights Reserved.</p>
       </footer>
     </div>
   );

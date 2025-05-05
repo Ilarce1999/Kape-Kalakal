@@ -80,7 +80,7 @@ const Login = () => {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      background: 'linear-gradient(135deg, #A0522D, #8B4513)',
+      background: 'linear-gradient(135deg,rgb(77, 34, 14), #8B4513)',
     },
     card: {
       backgroundColor: '#fffaf0',

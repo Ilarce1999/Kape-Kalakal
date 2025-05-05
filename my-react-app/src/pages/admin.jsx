@@ -11,7 +11,6 @@ import customFetch from '../../../utils/customFetch';
 import { toast } from 'react-toastify';
 
 const styles = {
-  // Same styles as in your user dashboard
   navbarWrapper: {
     backgroundColor: '#8B4513',
     width: '100%',
@@ -193,7 +192,9 @@ const Admin = () => {
             <Link to="/admin" style={getLinkStyle('/admin')}>HOME</Link>
             <Link to="/admin/products" style={getLinkStyle('/admin/products')}>MANAGE PRODUCTS</Link>
             <Link to="/admin/orders" style={getLinkStyle('/admin/orders')}>ORDERS</Link>
-            <Link to="/admin/users" style={getLinkStyle('/admin/users')}>USERS</Link>
+            <Link to="/admin/analytics" style={getLinkStyle('/admin/analytics')}>ANALYTICS</Link>
+            <Link to="/admin/categories" style={getLinkStyle('/admin/categories')}>MANAGE CATEGORIES</Link>
+            <Link to="/admin/transactions" style={getLinkStyle('/admin/transactions')}>TRANSACTIONS</Link>
             <div style={styles.dropdown} onClick={toggleDropdown}>
               <button style={styles.dropdownButton}>
                 <span>{user?.name}</span>
@@ -217,7 +218,7 @@ const Admin = () => {
       <div style={styles.contentContainer}>
         <div style={styles.box}>
           <h2>Welcome, Admin!</h2>
-          <p>Manage your products, users, and orders from the navigation above.</p>
+          <p>Manage your products, orders, categories, and view analytics from the navigation above.</p>
           <p>You have full access to the admin tools for Kape Kalakal.</p>
         </div>
       </div>

@@ -13,8 +13,13 @@ export const loader = async () => {
 };
 
 const styles = {
+  wrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100vh', // Ensures the entire page is used
+  },
   navbarWrapper: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#5a3b22',
     width: '100%',
     height: '70px',
     position: 'fixed',
@@ -29,6 +34,7 @@ const styles = {
     padding: '12px 20px',
     flexWrap: 'wrap',
     gap: '10px',
+    fontFamily: "'Playfair Display', serif",
   },
   navLeft: {
     display: 'flex',
@@ -67,9 +73,7 @@ const styles = {
     padding: '5px 10px',
   },
   activeLink: {
-    backgroundColor: '#A0522D',
-    fontWeight: 'bold',
-    borderRadius: '5px',
+    color: '#ffd700',
   },
   dropdown: {
     position: 'relative',
@@ -89,8 +93,8 @@ const styles = {
     position: 'absolute',
     top: '100%',
     right: '0',
-    backgroundColor: '#fff',
-    color: '#371D10',
+    backgroundColor: '#5a3b22',
+    color: 'white',
     padding: '10px 20px',
     borderRadius: '5px',
     boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
@@ -109,7 +113,10 @@ const styles = {
   pageContent: {
     padding: '140px 5vw 40px',
     textAlign: 'center',
+    backgroundColor: '#2c1b0b',
     fontFamily: "'Playfair Display', serif",
+    color: 'white',
+    flex: 1, // This ensures the content fills the remaining space
   },
   form: {
     maxWidth: '600px',
@@ -121,6 +128,7 @@ const styles = {
     borderRadius: '8px',
     boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
     boxSizing: 'border-box',
+    color: 'black', // Add this to change the text color to black
   },
   inputField: {
     width: '100%',
@@ -130,6 +138,8 @@ const styles = {
     border: '1px solid #ddd',
     fontSize: '1rem',
     boxSizing: 'border-box',
+    fontFamily: "'Roboto', sans-serif",
+    color: 'black', // Ensure input text is black
   },
   submitButton: {
     width: '100%',
@@ -145,11 +155,10 @@ const styles = {
     boxSizing: 'border-box',
   },
   footer: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#5a3b22',
     color: 'white',
     fontSize: '0.9rem',
     fontFamily: "'Playfair Display', serif",
-    marginTop: '40px',
     padding: '40px 20px 20px',
   },
   footerColumns: {
@@ -219,7 +228,7 @@ const Settings = () => {
   };
 
   return (
-    <div style={{ position: 'relative', overflowX: 'hidden', minHeight: '100vh', backgroundColor: '#F5DEB3' }}>
+    <div style={styles.wrapper}>
       {/* Navbar */}
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
@@ -276,37 +285,28 @@ const Settings = () => {
 
       {/* Footer */}
       <footer style={styles.footer}>
-        <div style={styles.footerColumns}>
-          <div style={styles.footerColumn}>
-            <h4 style={styles.footerHeading}>Customer Service</h4>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', padding: '0 20px' }}>
+          <div style={{ flex: '1 1 250px', margin: '10px' }}>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Customer Service</h4>
             <p>Need help? Our team is here for you 24/7.</p>
             <p>FAQs</p>
             <p>Returns & Refunds</p>
             <p>Order Tracking</p>
           </div>
-          <div style={styles.footerColumn}>
-            <h4 style={styles.footerHeading}>Contact Us</h4>
+          <div style={{ flex: '1 1 250px', margin: '10px' }}>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Contact Us</h4>
             <p>Email: support@kapekalakal.com</p>
             <p>Phone: +63 912 345 6789</p>
             <p>Address: 123 Brew Street, Makati, PH</p>
           </div>
-          <div style={styles.footerColumn}>
-            <h4 style={styles.footerHeading}>About Us</h4>
-            <p>
-              Kape Kalakal is your go-to café for premium Filipino coffee blends. We're passionate
-              about coffee and community.
-            </p>
+          <div style={{ flex: '1 1 250px', margin: '10px' }}>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>About Us</h4>
+            <p>Kape Kalakal is your go-to café for premium Filipino coffee blends. We're passionate about coffee and community.</p>
             <p>Read Our Story</p>
           </div>
         </div>
-        <div style={styles.footerLinks}>
-          <a href="/dashboard" style={styles.footerLink}>Home</a>
-          <a href="/aboutus" style={styles.footerLink}>About Us</a>
-          <a href="/menu" style={styles.footerLink}>Menu</a>
-          <a href="/settings" style={styles.footerLink}>Settings</a>
-        </div>
-        <div style={{ marginTop: '15px', textAlign: 'center' }}>
-          &copy; {new Date().getFullYear()} Kape Kalakal. All rights reserved.
+        <div style={{ marginTop: '20px' }}>
+          <p>© 2025 Kape Kalakal. All Rights Reserved.</p>
         </div>
       </footer>
     </div>

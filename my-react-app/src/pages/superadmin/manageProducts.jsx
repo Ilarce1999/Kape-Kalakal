@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import customFetch from '../../../../utils/customFetch.js';
+import { toast } from 'react-toastify';
 
 const styles = {
   navbarWrapper: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#5a3b22',
     width: '100%',
     height: '70px',
     position: 'fixed',
     top: 0,
     zIndex: 1000,
+    fontFamily: "'Playfair Display', serif",
   },
   navbar: {
     display: 'flex',
@@ -17,7 +20,7 @@ const styles = {
     alignItems: 'center',
     padding: '0 20px',
     height: '100%',
-    flexWrap: 'wrap', // To allow the navbar to wrap on smaller screens
+    flexWrap: 'wrap',
   },
   navLeft: {
     display: 'flex',
@@ -40,7 +43,7 @@ const styles = {
     display: 'flex',
     gap: '20px',
     alignItems: 'center',
-    flexWrap: 'wrap', // Allow wrapping for responsiveness
+    flexWrap: 'wrap',
   },
   navItem: {
     color: 'white',
@@ -52,8 +55,7 @@ const styles = {
     transition: 'color 0.3s ease, background-color 0.3s ease',
   },
   activeLink: {
-    backgroundColor: '#A0522D',
-    borderRadius: '5px',
+    color: '#ffd700',
   },
   dropdown: {
     position: 'relative',
@@ -89,7 +91,7 @@ const styles = {
   content: {
     paddingTop: '100px',
     padding: '40px 20px',
-    backgroundColor: '#F5DEB3',
+    backgroundColor: '#2c1b0b',
     minHeight: '100vh',
   },
   heading: {
@@ -103,38 +105,48 @@ const styles = {
     gap: '10px',
     maxWidth: '400px',
     marginBottom: '30px',
+    backgroundColor: '#3e2c23', // dark brown background
+    padding: '20px',
+    borderRadius: '10px',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
   },
   input: {
     padding: '10px',
     borderRadius: '5px',
-    border: '1px solid #ccc',
+    border: '1px solid #8B7D7B', // warm grey border
+    backgroundColor: '#f3f1ef',   // light beige input bg
   },
   button: {
     padding: '10px',
-    backgroundColor: '#8B4513',
+    backgroundColor: '#6f4e37', // medium brown
     color: 'white',
     fontWeight: 'bold',
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  },
+  buttonHover: {
+    backgroundColor: '#5a3b22',
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
     marginTop: '20px',
+    backgroundColor: '#f5f5f5', // light greyish bg
+    borderRadius: '8px',
+    overflow: 'hidden',
   },
   th: {
     textAlign: 'left',
     padding: '10px',
-    backgroundColor: '#8B4513',
+    backgroundColor: '#3e2c23', // dark brown
     color: 'white',
   },
   td: {
     padding: '10px',
     borderBottom: '1px solid #ccc',
-  },
-  img: {
-    width: '50px',
+    backgroundColor: '#fcfaf9', // off-white for rows
   },
   actionBtn: {
     marginRight: '5px',
@@ -142,41 +154,15 @@ const styles = {
     borderRadius: '3px',
     border: 'none',
     cursor: 'pointer',
+    fontWeight: 'bold',
   },
   editBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#007BFF', // blue
     color: 'white',
   },
   deleteBtn: {
-    backgroundColor: '#f44336',
+    backgroundColor: '#DC3545', // red
     color: 'white',
-  },
-  '@media (max-width: 768px)': {
-    navbar: {
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: '10px',
-    },
-    navItems: {
-      flexDirection: 'column',
-      gap: '10px',
-      width: '100%',
-      textAlign: 'center',
-    },
-    content: {
-      paddingTop: '120px', // Make space for navbar on small screens
-      padding: '20px',
-    },
-    form: {
-      width: '100%',
-      maxWidth: 'none',
-    },
-    button: {
-      width: '100%',
-    },
-    table: {
-      fontSize: '14px',
-    },
   },
 };
 
@@ -195,11 +181,16 @@ const ManageProducts = () => {
     setProducts(res.data);
   };
 
-  const logoutUser = () => {
-    axios.post('/api/logout').then(() => {
-      navigate('/');
-    });
+    const logoutUser = async () => {
+    try {
+      await customFetch.get('/auth/logout');
+      toast.success('Logging out...');
+      navigate('/login');
+    } catch (err) {
+      toast.error('Logout failed');
+    }
   };
+
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
@@ -219,45 +210,35 @@ const ManageProducts = () => {
 
     try {
       if (editingId) {
-        // Update existing product
         await axios.patch(`/api/products/${editingId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       } else {
-        // Add new product
         const res = await axios.post('/api/products', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-
-        // Add the new product to the table (client-side)
-        setProducts([...products, res.data]);  // Append the newly created product to the products list
+        setProducts([...products, res.data]);
       }
 
-      // Clear the form and reset the editing state
       setForm({ name: '', description: '', price: '', image: null });
       setEditingId(null);
-
-      // Optionally, you can fetch the updated product list again from the server
       fetchProducts();
-      navigate('/superadmin/manageProducts'); // Redirect to the same page after submission
     } catch (error) {
       console.error('Error submitting product:', error);
     }
   };
 
   const handleEdit = (product) => {
-    setForm({
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      image: null,
+    navigate(`/superadmin/updateProduct/${product.id}`, {
+      state: { product: product } // Pass the product details if needed
     });
-    setEditingId(product.id);
   };
 
-  const handleDelete = async (id) => {
-    await axios.delete(`/api/products/${id}`);
-    fetchProducts();
+  const handleDelete = (id) => {
+    const confirmed = window.confirm('Are you sure you want to delete this product?');
+    if (confirmed) {
+      navigate(`/superadmin/deleteProduct/${id}`); // Redirect to delete product page
+    }
   };
 
   const getLinkStyle = (path) => ({
@@ -285,12 +266,7 @@ const ManageProducts = () => {
                 <span>{currentUser?.name}</span>
                 <span style={styles.icon}>▼</span>
               </button>
-              <div
-                style={{
-                  ...styles.dropdownMenu,
-                  ...(isDropdownOpen ? styles.dropdownShow : {}),
-                }}
-              >
+              <div style={{ ...styles.dropdownMenu, ...(isDropdownOpen ? styles.dropdownShow : {}) }}>
                 <div style={{ cursor: 'pointer' }} onClick={logoutUser}>Logout</div>
               </div>
             </div>
@@ -346,13 +322,13 @@ const ManageProducts = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map((prod) => (
-              <tr key={prod.id}>
+          {products.map((prod) => (
+          <tr key={prod.id || prod._id || `${prod.name}-${prod.price}`}>
                 <td style={styles.td}>{prod.name}</td>
                 <td style={styles.td}>{prod.description}</td>
                 <td style={styles.td}>₱{prod.price}</td>
                 <td style={styles.td}>
-                  <img src={prod.image} alt={prod.name} style={styles.img} />
+                <img src={`http://localhost:5200/uploads/${prod.image}`} alt={prod.name} width={50} />
                 </td>
                 <td style={styles.td}>
                   <button

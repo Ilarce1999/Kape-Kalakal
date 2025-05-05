@@ -16,6 +16,8 @@ export { default as AllUsers } from './superadmin/allUsers';
 export { default as AddUser } from './superadmin/addUser';
 export { default as EditUser } from './superadmin/editUser';
 export { default as DeleteUser } from './superadmin/deleteUser';
+export { default as UpdateProduct } from './superadmin/updateProduct';
+export { default as DeleteProduct } from './superadmin/deleteProduct';
 
 
 

@@ -23,6 +23,9 @@ import AddUser from './pages/superadmin/addUser';
 import EditUser from './pages/superadmin/editUser';
 import DeleteUser from './pages/superadmin/deleteUser';
 import Products from './pages/superadmin/manageProducts';
+import UpdateProduct from './pages/superadmin/updateProduct';
+import DeleteProduct from './pages/superadmin/deleteProduct';
+
 
 // ✅ Login imported separately with loader and action
 import Login, { loader as loginLoader, action as loginAction } from './pages/login';
@@ -31,7 +34,7 @@ import Login, { loader as loginLoader, action as loginAction } from './pages/log
 import { action as registerAction } from './pages/register';
 import { loader as dashboardLoader } from './pages/dashboard';
 import { loader as aboutusLoader } from './pages/aboutus';
-import { loader as menuLoader } from './pages/menu';
+//import { loader as menuLoader } from './pages/menu';
 import { loader as settingsLoader } from './pages/settings';
 import { loader as adminDashboardLoader } from './pages/admin';
 import { loader as usersLoader } from './pages/admin/users';
@@ -105,6 +108,19 @@ const router = createBrowserRouter([
     errorElement: <Error />,
   },
   {
+    path: '/superadmin/updateProduct/:id',
+    element: <UpdateProduct />,
+    // loader: allUsersLoader,
+    errorElement: <Error />,
+  },
+
+  {
+    path: '/superadmin/deleteProduct/:id',
+    element: <DeleteProduct />,
+   // loader: allUsersLoader,
+    errorElement: <Error />,
+  },
+  {
     path: '/superadmin/manageProducts',
     element: <Products />,
    // loader: allUsersLoader,
@@ -119,7 +135,7 @@ const router = createBrowserRouter([
   {
     path: '/menu',
     element: <Menu />,
-    loader: menuLoader,
+    //loader: menuLoader,
     errorElement: <Error />,
   },
   {

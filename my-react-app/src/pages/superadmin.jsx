@@ -16,110 +16,6 @@ export const loader = async () => {
   }
 };
 
-const styles = {
-  navbarWrapper: {
-    backgroundColor: '#8B4513',
-    width: '100%',
-    height: '10%',
-    position: 'fixed',
-    top: 0,
-    zIndex: 1000,
-  },
-  navbar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '10px 20px',
-    lineHeight: '1.8',
-  },
-  navLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  logo: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-  },
-  logoText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: '1.5rem',
-    fontFamily: "'Playfair Display', serif",
-    lineHeight: '1.8',
-    marginTop: '5px',
-  },
-  navItems: {
-    display: 'flex',
-    gap: '20px',
-    alignItems: 'center',
-    paddingTop: '10px',
-  },
-  navItem: {
-    color: 'white',
-    fontSize: '1rem',
-    fontWeight: 'bold',
-    textDecoration: 'none',
-    cursor: 'pointer',
-    transition: 'color 0.3s ease, background-color 0.3s ease',
-    padding: '5px 10px',
-  },
-  activeLink: {
-    backgroundColor: '#A0522D',
-    fontWeight: 'bold',
-    borderRadius: '5px',
-  },
-  dropdown: {
-    position: 'relative',
-    cursor: 'pointer',
-  },
-  dropdownMenu: {
-    position: 'absolute',
-    top: '100%',
-    right: '0',
-    backgroundColor: '#fff',
-    color: '#371D10',
-    padding: '10px 20px',
-    borderRadius: '5px',
-    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-    display: 'none',
-  },
-  dropdownShow: {
-    display: 'block',
-  },
-  dropdownButton: {
-    backgroundColor: 'transparent',
-    border: 'none',
-    color: 'white',
-    fontSize: '1rem',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-  },
-  icon: {
-    fontSize: '18px',
-  },
-  contentContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '60px 20px',
-    marginTop: '120px',
-  },
-  box: {
-    width: '80%',
-    backgroundColor: 'white',
-    borderRadius: '15px',
-    boxShadow: '0 10px 20px rgba(0,0,0,0.15)',
-    padding: '40px',
-    textAlign: 'center',
-    fontFamily: "'Playfair Display', serif",
-  },
-};
-
 const SuperAdmin = () => {
   const { user } = useLoaderData();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -129,8 +25,13 @@ const SuperAdmin = () => {
   const getLinkStyle = (path) => {
     const isActive = location.pathname === path;
     return {
-      ...styles.navItem,
-      ...(isActive ? styles.activeLink : {}),
+      color: isActive ? '#FFD700' : 'white',
+      fontSize: '1rem',
+      fontWeight: 'bold',
+      textDecoration: 'none',
+      cursor: 'pointer',
+      transition: 'color 0.3s ease, background-color 0.3s ease',
+      padding: '5px 10px',
     };
   };
 
@@ -149,37 +50,169 @@ const SuperAdmin = () => {
   };
 
   return (
-    <div style={{ position: 'relative', overflowX: 'hidden', minHeight: '100vh', backgroundColor: '#F5DEB3' }}>
-      <div style={styles.navbarWrapper}>
-        <nav style={styles.navbar}>
-          <div style={styles.navLeft}>
-            <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
-            <span style={styles.logoText}>Kape Kalakal - Super Admin</span>
+    <div style={{ position: 'relative', overflowX: 'hidden', minHeight: '100vh', backgroundColor: '#2c1b0b' }}>
+      {/* Responsive Styles */}
+      <style>
+        {`
+          .navbar-wrapper {
+            background-color: #5a3b22;
+            width: 100%;
+            height: auto;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+            font-family: 'Playfair Display', serif;
+          }
+
+          .navbar {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            flex-wrap: wrap;
+          }
+
+          .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+
+          .logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+          }
+
+          .logo-text {
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+            font-family: 'Playfair Display', serif;
+            margin-top: 5px;
+          }
+
+          .nav-items {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding-top: 10px;
+          }
+
+          .dropdown {
+            position: relative;
+            cursor: pointer;
+          }
+
+          .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            color: #371D10;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+          }
+
+          .dropdown-menu.show {
+            display: block;
+          }
+
+          .dropdown-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+          }
+
+          .content-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 20px;
+            margin-top: 120px;
+          }
+
+          .box {
+            width: 90%;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+          }
+
+          @media (max-width: 768px) {
+            .navbar {
+              flex-direction: column;
+              align-items: flex-start;
+            }
+            .nav-items {
+              flex-direction: column;
+              gap: 10px;
+              align-items: flex-start;
+            }
+            .logo-text {
+              font-size: 1.2rem;
+            }
+            .box {
+              padding: 20px;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .logo {
+              width: 30px;
+              height: 30px;
+            }
+            .logo-text {
+              font-size: 1rem;
+            }
+            .dropdown-button {
+              font-size: 0.9rem;
+            }
+          }
+        `}
+      </style>
+
+      {/* Navbar */}
+      <div className="navbar-wrapper">
+        <nav className="navbar">
+          <div className="nav-left">
+            <img src="/images/kape.jpg" alt="Logo" className="logo" />
+            <span className="logo-text">Kape Kalakal - Super Admin</span>
           </div>
-          <div style={styles.navItems}>
+          <div className="nav-items">
             <Link to="/superadmin" style={getLinkStyle('/superadmin')}>HOME</Link>
             <Link to="/superadmin/manageProducts" style={getLinkStyle('/superadmin/manageProducts')}>MANAGE PRODUCTS</Link>
             <Link to="/superadmin/allUsers" style={getLinkStyle('/superadmin/allUsers')}>MANAGE USERS</Link>
-            <div style={styles.dropdown} onClick={toggleDropdown}>
-              <button style={styles.dropdownButton}>
+            <div className="dropdown" onClick={toggleDropdown}>
+              <button className="dropdown-button">
                 <span>Super Admin</span>
-                <span style={styles.icon}>▼</span>
+                <span style={{ fontSize: '18px' }}>▼</span>
               </button>
-              <div
-                style={{
-                  ...styles.dropdownMenu,
-                  ...(isDropdownOpen ? styles.dropdownShow : {}),
-                }}
-              >
-                <div style={styles.dropdownItem} onClick={logoutUser}>Logout</div>
+              <div className={`dropdown-menu ${isDropdownOpen ? 'show' : ''}`}>
+                <div onClick={logoutUser}>Logout</div>
               </div>
             </div>
           </div>
         </nav>
       </div>
 
-      <div style={styles.contentContainer}>
-        <div style={styles.box}>
+      {/* Page Content */}
+      <div className="content-container">
+        <div className="box">
           <h2>Welcome, Super Admin!</h2>
           <p>Use the navigation above to manage products, users, and your dashboard settings.</p>
         </div>
