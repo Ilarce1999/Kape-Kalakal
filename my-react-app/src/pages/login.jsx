@@ -5,7 +5,7 @@ import {
   Form,
   useNavigation,
   useActionData,
-  useNavigate,
+  redirect,
 } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -20,27 +20,26 @@ export const loader = () => {
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
-  const errors = { msg: '' };
 
   if (data.password.length < 3) {
-    errors.msg = 'Password too short';
-    return errors;
+    return { msg: 'Password too short' };
   }
 
   try {
     const response = await customFetch.post('/auth/login', data);
     const user = response.data.user;
+    const token = response.data.token;
+
+    // ✅ Store user data and token in localStorage
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('userId', user._id);      // Or whatever field your user object uses for ID
+    localStorage.setItem('email', user.email);
 
     toast.success('Login successful');
 
-    // Return a redirect object based on user role
-    if (user.role === 'superadmin') {
-      return { redirect: '/superadmin' };
-    }
-    if (user.role === 'admin') {
-      return { redirect: '/admin' };
-    }
-    return { redirect: '/dashboard' };
+    if (user.role === 'superadmin') return redirect('/superadmin');
+    if (user.role === 'admin') return redirect('/admin');
+    return redirect('/dashboard');
   } catch (error) {
     toast.error(error?.response?.data?.msg || 'Login failed');
     return { msg: error?.response?.data?.msg || 'Login failed' };
@@ -55,7 +54,6 @@ const Login = () => {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const errors = useActionData();
-  const navigate = useNavigate();
 
   // Show success toast after redirection (e.g. after register)
   useEffect(() => {
@@ -66,14 +64,6 @@ const Login = () => {
     }
   }, [location]);
 
-  // Redirect to appropriate page after successful login
-  useEffect(() => {
-    if (errors?.redirect) {
-      navigate(errors.redirect);
-    }
-  }, [errors, navigate]);
-
-  // Inline styles
   const styles = {
     wrapper: {
       height: '100vh',

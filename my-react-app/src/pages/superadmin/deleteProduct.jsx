@@ -24,7 +24,8 @@ const DeleteProduct = () => {
     if (confirmed) {
       try {
         await axios.delete(`/api/products/${id}`);
-        fetchProducts(); // Refresh the product list after deletion
+        // After deletion, redirect to the manage products page
+        navigate('/superadmin/manageProducts');
       } catch (error) {
         console.error('Error deleting product:', error);
       }
@@ -43,7 +44,7 @@ const DeleteProduct = () => {
       <p>Are you sure you want to delete <strong>{product.name}</strong>?</p>
       <button
         style={{ marginRight: '10px', padding: '10px', backgroundColor: '#DC3545', color: 'white', border: 'none', borderRadius: '5px' }}
-        onClick={handleDelete}
+        onClick={() => handleDelete(id)} // Pass the id to the handleDelete function
       >
         Yes, Delete
       </button>

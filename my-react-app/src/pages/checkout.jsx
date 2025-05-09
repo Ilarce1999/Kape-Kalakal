@@ -1,299 +1,254 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import customFetch from '../../../utils/customFetch';
 
 const Checkout = () => {
   const { state } = useLocation();
+  const { orderDetails } = state || {};
+  const [orderSummary, setOrderSummary] = useState([]);
   const navigate = useNavigate();
 
-  const storedOrderDetails = JSON.parse(sessionStorage.getItem('orderDetails')) || [];
-  const storedTotalPrice = parseFloat(sessionStorage.getItem('totalPrice')) || 0;
-
-  const { orderDetails = storedOrderDetails, totalPrice = storedTotalPrice } = state || {};
-
-  const normalizedOrderDetails = (orderDetails || []).map(item => ({
-    ...item,
-    drinkName: item.drinkName || item.name,
-  }));
-
-  const [cartItems, setCartItems] = useState(normalizedOrderDetails);
-  const [cartTotal, setCartTotal] = useState(totalPrice);
+  const DELIVERY_FEE = 50.00;
 
   useEffect(() => {
-    sessionStorage.setItem('orderDetails', JSON.stringify(cartItems));
-    sessionStorage.setItem('totalPrice', cartTotal.toString());
-  }, [cartItems, cartTotal]);
+    if (orderDetails) {
+      setOrderSummary(orderDetails);
+    }
+  }, [orderDetails]);
 
-  const updateCart = (updatedCart) => {
-    const newTotal = updatedCart.reduce((sum, item) => sum + item.totalPrice, 0);
-    setCartItems(updatedCart);
-    setCartTotal(newTotal);
+  const handleRemoveFromCart = (productId) => {
+    const updatedCart = orderSummary.filter((item) => item.productId !== productId);
+    setOrderSummary(updatedCart);
+    localStorage.setItem('orderDetails', JSON.stringify(updatedCart));
   };
 
-  const fetchLatestOrders = async () => {
-    try {
-      const response = await customFetch.get('/drinks');
-      updateCart(response.data);
-    } catch (error) {
-      toast.error('Error fetching the latest orders.');
-    }
+  const calculateSubtotal = () => {
+    return orderSummary.reduce((acc, item) => acc + item.totalPrice, 0);
   };
 
-  const handleBackToMenu = () => {
-    navigate('/menu', { state: { existingOrder: cartItems } });
-  };
-
-  const handlePayment = async () => {
-    if (cartItems.length === 0) {
-      toast.warn('No items in the cart to pay for.');
-      return;
-    }
-
-    if (cartItems.some(item => !item._id)) {
-      toast.warn('Please finalize your order before paying.');
-      return;
-    }
-
-    toast.info('Redirecting to GCash payment page...');
-
-    try {
-      const responses = await Promise.all(
-        cartItems.map(item => {
-          const normalizedSize = item.size.charAt(0).toUpperCase() + item.size.slice(1).toLowerCase();
-          const payload = {
-            drinkName: item.drinkName,
-            size: normalizedSize,
-            quantity: item.quantity,
-            totalPrice: item.totalPrice,
-          };
-          return customFetch.post('/drinks', payload);
-        })
-      );
-
-      if (responses.some(res => res.status !== 201)) {
-        throw new Error('One or more orders failed');
-      }
-
-      const savedItems = responses.map(res => res.data);
-      setCartItems(savedItems);
-      sessionStorage.setItem('orderDetails', JSON.stringify(savedItems));
-      sessionStorage.setItem('totalPrice', cartTotal.toString());
-
-      toast.success('Payment successful!');
-      sessionStorage.removeItem('orderDetails');
-      sessionStorage.removeItem('totalPrice');
-      navigate('/orderHistory');
-    } catch (error) {
-      toast.error('Payment failed. Please try again.');
-    }
-  };
-
-  const deleteOrderItem = async (index) => {
-    const item = cartItems[index];
+  const handleCheckout = async () => {
+    // Retrieve the token from localStorage
+    const token = localStorage.getItem('authToken'); // Ensure this is the correct key
   
-    // If no ID, just remove locally
-    if (!item._id) {
-      const updatedCart = cartItems.filter((_, i) => i !== index);
-      updateCart(updatedCart);
-      toast.success('Item removed locally.');
+    // Debug log to check the value of token
+    console.log('Token retrieved:', token);
+  
+    if (!token) {
+      alert('You must be logged in to place an order.');
       return;
     }
   
-    // Soft delete in backend
+    // Log the headers to verify the token
+    console.log('Headers:', {
+      'Authorization': `Bearer ${token}`, // Log the Authorization header
+    });
+  
+    // Calculate subtotal and total
+    const subtotal = calculateSubtotal();
+    const total = subtotal + DELIVERY_FEE;
+  
+    const userId = localStorage.getItem('userId') || 'guest'; // Adjust if you have auth
+    const userEmail = localStorage.getItem('email') || 'unknown';
+  
+    const orderPayload = {
+      userId,
+      email: userEmail,
+      items: orderSummary,
+      subtotal,
+      deliveryFee: DELIVERY_FEE,
+      total,
+      status: 'Pending',
+      createdAt: new Date().toISOString(),
+    };
+  
     try {
-      const response = await customFetch.patch(`/drinks/${item._id}`, {
-        isDeleted: true, // You must support this in the backend
+      // Perform the API call to place the order
+      const response = await fetch('http://localhost:5200/api/v1/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // 👈 this sends cookies
+        body: JSON.stringify(orderPayload),
       });
+      
   
-      if (response.status === 200) {
-        const updatedCart = cartItems.filter((_, i) => i !== index);
-        updateCart(updatedCart);
-  
-        if (updatedCart.length === 0) {
-          sessionStorage.removeItem('orderDetails');
-          sessionStorage.removeItem('totalPrice');
-        }
-  
-        toast.success('Item marked as deleted successfully.');
+      if (response.ok) {
+        alert('Order placed successfully!');
+        localStorage.removeItem('orderDetails');
+        navigate('/menu');
       } else {
-        throw new Error('Failed to soft delete');
+        alert('Failed to place order');
       }
     } catch (error) {
-      toast.error('Could not delete item.');
+      console.error('Checkout error:', error);
+      alert('An error occurred while placing the order.');
     }
+  };  
+  
+  
+  const handleBackToMenu = () => {
+    navigate('/menu');
   };
-  
-  
-  
 
-  const editOrderItem = async (index) => {
-    const item = cartItems[index];
-    const newSizeInput = prompt('Enter new size (Small, Medium, Large):', item.size);
-    const newQty = parseInt(prompt('Enter new quantity:', item.quantity), 10);
-  
-    if (!newSizeInput || isNaN(newQty) || newQty < 1) {
-      toast.error('Invalid size or quantity.');
-      return;
-    }
-  
-    const normalizedSize = newSizeInput.charAt(0).toUpperCase() + newSizeInput.slice(1).toLowerCase();
-    const priceEach = item.totalPrice / item.quantity;
-    const updatedTotalPrice = priceEach * newQty;
-  
-    // Update in local cart if not yet saved
-    if (!item._id) {
-      const updatedCart = [...cartItems];
-      updatedCart[index] = {
-        ...item,
-        size: normalizedSize,
-        quantity: newQty,
-        totalPrice: updatedTotalPrice,
-      };
-      updateCart(updatedCart);
-      toast.success('Item updated locally.');
-      return;
-    }
-  
-    // Update in backend
-    try {
-      const response = await customFetch.patch(`/drinks/${item._id}`, {
-        size: normalizedSize,
-        quantity: newQty,
-        totalPrice: updatedTotalPrice,
-      });
-  
-      if (response.status === 200) {
-        const updatedCart = [...cartItems];
-        updatedCart[index] = response.data;
-        updateCart(updatedCart);
-        toast.success('Item updated successfully.');
-      }
-    } catch (error) {
-      toast.error('Failed to update item.');
-    }
-  };
+  const subtotal = calculateSubtotal();
+  const total = subtotal + DELIVERY_FEE;
 
   return (
-    <div style={styles.pageWrapper}>
-      <h1 style={styles.checkoutHeader}>Checkout</h1>
+    <div className="checkout-container">
+      <h2 className="checkout-title">Receipt Summary</h2>
+      {orderSummary.length > 0 ? (
+        <div className="receipt-box">
+          <ul className="order-list">
+            {orderSummary.map((item, index) => (
+              <li key={index} className="order-item">
+                <div className="item-details">
+                  <div>{item.name} ({item.size})</div>
+                  <div>{item.quantity} x ₱{item.price.toFixed(2)}</div>
+                  <div>= ₱{item.totalPrice.toFixed(2)}</div>
+                </div>
+                <button className="remove-button" onClick={() => handleRemoveFromCart(item.productId)}>
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
 
-      {cartItems.length > 0 ? (
-        <div style={styles.cartContainer}>
-          {cartItems.map((item, index) => (
-            <div key={index} style={styles.cartItem}>
-              <div style={styles.itemDetails}>
-                <div style={styles.itemName}>{item.drinkName}</div>
-                <div style={styles.itemPrice}>₱{item.totalPrice.toFixed(2)}</div>
-                <div>Size: {item.size}</div>
-                <div>Quantity: {item.quantity}</div>
-              </div>
-              <div>
-                <button style={styles.deleteButton} onClick={() => deleteOrderItem(index)}>Remove</button>
-                <button style={styles.deleteButton} onClick={() => editOrderItem(index)}>Edit</button>
-              </div>
+          <div className="receipt-totals">
+            <div className="subtotal-row">
+              <span>Subtotal:</span>
+              <span>₱{subtotal.toFixed(2)}</span>
             </div>
-          ))}
-          <div style={styles.totalPriceWrapper}>
-            <div>Total Price:</div>
-            <div>₱{cartTotal.toFixed(2)}</div>
+            <div className="subtotal-row">
+              <span>Delivery Fee:</span>
+              <span>₱{DELIVERY_FEE.toFixed(2)}</span>
+            </div>
+            <hr />
+            <div className="total-row">
+              <strong>Total:</strong>
+              <strong>₱{total.toFixed(2)}</strong>
+            </div>
           </div>
-          <button style={styles.paymentButton} onClick={handlePayment}>Pay with GCash</button>
+
+          <button className="checkout-button" onClick={handleCheckout}>Place Order</button>
         </div>
       ) : (
-        <div style={styles.noItemsMessage}>
-          <p>No items in the cart.</p>
-        </div>
+        <p className="empty-cart">No items in the cart</p>
       )}
 
-      <button style={styles.backButton} onClick={handleBackToMenu}>Back to Menu</button>
+      <button className="back-button" onClick={handleBackToMenu}>Back to Menu</button>
+
+      <style jsx>{`
+        .checkout-container {
+          padding: 20px;
+          max-width: 800px;
+          margin: 0 auto;
+          font-family: Arial, sans-serif;
+        }
+
+        .checkout-title {
+          font-size: 2rem;
+          text-align: center;
+          margin-bottom: 20px;
+        }
+
+        .receipt-box {
+          background: #fff;
+          border-radius: 10px;
+          padding: 20px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-list {
+          list-style: none;
+          padding: 0;
+          margin: 0 0 20px;
+        }
+
+        .order-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 1px solid #ddd;
+          padding: 10px 0;
+        }
+
+        .item-details {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          color: #333;
+        }
+
+        .remove-button {
+          background-color: #e74c3c;
+          color: white;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .remove-button:hover {
+          background-color: #c0392b;
+        }
+
+        .receipt-totals {
+          margin-top: 20px;
+          font-size: 1rem;
+        }
+
+        .subtotal-row,
+        .total-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+        }
+
+        .total-row {
+          font-size: 1.2rem;
+          font-weight: bold;
+        }
+
+        .checkout-button {
+          margin-top: 20px;
+          width: 100%;
+          padding: 12px;
+          background-color: #5a3b22;
+          color: white;
+          border: none;
+          font-size: 1rem;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+
+        .checkout-button:hover {
+          background-color: #3e2715;
+        }
+
+        .back-button {
+          margin-top: 20px;
+          width: 100%;
+          padding: 10px;
+          background-color: #8B4513;
+          color: white;
+          border: none;
+          font-size: 1rem;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+
+        .back-button:hover {
+          background-color: #5a2e0e;
+        }
+
+        .empty-cart {
+          text-align: center;
+          color: #666;
+          font-size: 1.1rem;
+        }
+      `}</style>
     </div>
   );
-};
-
-const styles = {
-  pageWrapper: {
-    padding: '40px',
-    fontFamily: "'Playfair Display', serif",
-    backgroundColor: '#F5DEB3',
-    minHeight: '100vh',
-  },
-  checkoutHeader: {
-    textAlign: 'center',
-    fontSize: '2.5rem',
-    fontWeight: 'bold',
-    marginBottom: '30px',
-    color: '#4B2E2E',
-  },
-  cartContainer: {
-    backgroundColor: '#4B2E2E',
-    padding: '20px',
-    borderRadius: '8px',
-    color: '#fff',
-    maxWidth: '900px',
-    margin: '0 auto',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-  },
-  cartItem: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    padding: '12px 0',
-    borderBottom: '1px solid #fff',
-  },
-  itemDetails: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-  },
-  itemName: {
-    fontSize: '1.2rem',
-    fontWeight: 'bold',
-  },
-  itemPrice: {
-    color: '#D2B48C',
-    fontSize: '1.1rem',
-  },
-  deleteButton: {
-    backgroundColor: '#fff',
-    color: '#4B2E19',
-    border: 'none',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    marginRight: '10px',
-  },
-  totalPriceWrapper: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginTop: '20px',
-    fontSize: '1.1rem',
-  },
-  paymentButton: {
-    backgroundColor: '#D2B48C',
-    color: '#4B2E2E',
-    border: 'none',
-    padding: '12px 24px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1.2rem',
-    width: '100%',
-    marginTop: '20px',
-  },
-  backButton: {
-    marginTop: '20px',
-    backgroundColor: '#4B2E19',
-    color: '#fff',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    width: '100%',
-  },
-  noItemsMessage: {
-    textAlign: 'center',
-    fontSize: '1.2rem',
-    marginTop: '30px',
-  },
 };
 
 export default Checkout;

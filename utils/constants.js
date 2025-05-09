@@ -10,3 +10,9 @@ export const DRINK_SORT_BY = {
     ASCENDING: 'a-z',
     DESCENDING: 'z-a',
 };
+
+export const ORDER_STATUS = {
+    PENDING: 'Pending',
+    PAID: 'Paid',
+};
+

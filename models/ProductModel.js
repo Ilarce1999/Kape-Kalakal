@@ -9,10 +9,19 @@ const ProductSchema = new mongoose.Schema({
   description: {
     type: String
   },
-  price: {
-    type: Number,
-    required: true,
-    min: 0
+  sizes: {
+    small: {
+      type: Number, // price for small size
+      required: true
+    },
+    medium: {
+      type: Number, // price for medium size
+      required: true
+    },
+    large: {
+      type: Number, // price for large size
+      required: true
+    }
   },
   image: {
     type: String,  // Store the path of the image file

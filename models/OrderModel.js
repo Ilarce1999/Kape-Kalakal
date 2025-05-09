@@ -1,32 +1,23 @@
 import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
-  drinkName: {  
+  userId: {
+    type: String, 
+  },
+  email: {
     type: String,
-    required: true,
   },
-  size: {
+  items: [Object],
+  subtotal: Number,
+  deliveryFee: Number,
+  total: Number,
+  status: {
     type: String,
-    enum: ['Small', 'Medium', 'Large'],
-    required: true,
+    default: 'Pending',
   },
-  quantity: {
-    type: Number,
-    required: true,
-    min: 1,
-  },
-  totalPrice: {
-    type: Number,
-    required: true,
-    min: 0,
-  },
-  orderedBy: {
-    type: mongoose.Types.ObjectId,
-    ref: 'User',
-    required: true,
+  createdAt: {
+    type: Date,
+    default: Date.now,
   }
-}, {
-  timestamps: true
 });
-
 export default mongoose.model('Order', OrderSchema);

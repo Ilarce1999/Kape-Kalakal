@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLoaderData, redirect } from 'react-router-dom';
 import { FaShoppingCart } from 'react-icons/fa';
+import customFetch from '../../../utils/customFetch.js'; // Adjust this path as needed
 
-const Menu = ({ user, logoutUser }) => {
+export const loader = async () => {
+  try {
+    const { data } = await customFetch.get('/users/current-user');
+    return data;
+  } catch (error) {
+    return redirect('/');
+  }
+};
+
+const Menu = ({ logoutUser }) => {
   const navigate = useNavigate();
+  const { user } = useLoaderData();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [orderDetails, setOrderDetails] = useState(() => {
     const savedOrders = localStorage.getItem('orderDetails');
@@ -14,18 +25,26 @@ const Menu = ({ user, logoutUser }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [modalProduct, setModalProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [size, setSize] = useState('Small');
+
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
-  const totalItems = orderDetails.reduce((acc, item) => acc + item.quantity, 0);
+  const totalProducts = orderDetails.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = orderDetails.reduce((acc, item) => acc + item.totalPrice, 0);
+  const DELIVERY_FEE = 50; 
 
   const handleCartClick = () => {
+    const finalTotalPrice = totalPrice + DELIVERY_FEE;
+  
     if (orderDetails.length === 0) {
       localStorage.removeItem('orderDetails');
     } else {
       localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
     }
-    navigate('/checkout', { state: { orderDetails, totalPrice } });
+  
+    navigate('/checkout', { state: { orderDetails, totalPrice: finalTotalPrice, deliveryFee: DELIVERY_FEE } });
   };
 
   useEffect(() => {
@@ -44,46 +63,72 @@ const Menu = ({ user, logoutUser }) => {
     fetchProducts();
   }, []);
 
-  const handleOrder = (product) => {
-    const existingOrder = orderDetails.find(item => item.productId === product._id);
+  const sizeMultipliers = {
+    Small: 1,
+    Medium: 1.25,
+    Large: 1.5,
+  };
+
+  const calculateTotal = (basePrice) => {
+    return basePrice * quantity * sizeMultipliers[size];
+  };
+
+  const handleAddToCartClick = (product) => {
+    setModalProduct(product);
+    setQuantity(1);
+    setSize('Small');
+  };
+
+  const confirmAddToCart = () => {
+    if (!modalProduct) return;
+
+    const product = modalProduct;
+    const newOrder = {
+      productId: product._id,
+      name: product.name,
+      price: product.price,
+      quantity,
+      size,
+      totalPrice: calculateTotal(product.price),
+    };
+
+    const existingOrder = orderDetails.find(
+      (item) => item.productId === product._id && item.size === size
+    );
+
     let updatedOrders;
 
     if (existingOrder) {
-      updatedOrders = orderDetails.map(item =>
-        item.productId === product._id
+      updatedOrders = orderDetails.map((item) =>
+        item.productId === product._id && item.size === size
           ? {
               ...item,
-              quantity: item.quantity + 1,
-              totalPrice: (item.quantity + 1) * product.price
+              quantity: item.quantity + quantity,
+              totalPrice: (item.quantity + quantity) * product.price * sizeMultipliers[size],
             }
           : item
       );
     } else {
-      updatedOrders = [
-        ...orderDetails,
-        {
-          productId: product._id,
-          name: product.name,
-          price: product.price,
-          quantity: 1,
-          totalPrice: product.price
-        }
-      ];
+      updatedOrders = [...orderDetails, newOrder];
     }
 
     setOrderDetails(updatedOrders);
     localStorage.setItem('orderDetails', JSON.stringify(updatedOrders));
+    setModalProduct(null);
   };
 
   const logoutHandler = () => {
-    // Clear user data from localStorage or sessionStorage (depending on how user is authenticated)
+    // Remove the user from localStorage
     localStorage.removeItem('user');
-    // Redirect to login page
+    
+    // Clear cookies (for JWT or other cookies)
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+    
+    // Redirect the user to login page
     navigate('/login');
-    // Call the logout function if it is passed in as a prop
-    if (logoutUser) {
-      logoutUser();
-    }
+    
+    // Call the logoutUser function if provided (optional)
+    if (logoutUser) logoutUser();
   };
 
   const styles = {
@@ -95,9 +140,6 @@ const Menu = ({ user, logoutUser }) => {
       flexDirection: 'column',
       minHeight: '100vh',
       backgroundColor: '#2c1b0b',
-      fontFamily: "'Playfair Display', serif",
-      color: 'white',
-      fontWeight: 'bold',
     },
     navbarWrapper: { backgroundColor: '#5a3b22', borderBottom: '1px solid #ddd' },
     navbar: {
@@ -108,11 +150,11 @@ const Menu = ({ user, logoutUser }) => {
       padding: '0 20px',
     },
     navLeft: { display: 'flex', alignItems: 'center' },
-    logo: { 
-      height: '40px', 
-      width: '40px', // Added width to make it a circle
-      marginRight: '10px', 
-      borderRadius: '50%' // Make the logo circular
+    logo: {
+      height: '40px',
+      width: '40px',
+      marginRight: '10px',
+      borderRadius: '50%',
     },
     navRight: { display: 'flex', alignItems: 'center', gap: '30px' },
     navLink: {
@@ -122,10 +164,7 @@ const Menu = ({ user, logoutUser }) => {
       fontFamily: "'Playfair Display', serif",
     },
     activeLink: { color: '#ffd700' },
-    dropdown: {
-      position: 'relative',
-      cursor: 'pointer',
-    },
+    dropdown: { position: 'relative', cursor: 'pointer' },
     dropdownButton: {
       backgroundColor: 'transparent',
       border: 'none',
@@ -139,14 +178,18 @@ const Menu = ({ user, logoutUser }) => {
     dropdownMenu: {
       position: 'absolute',
       top: '100%',
-      right: 0,
+      right: '0',
       backgroundColor: '#5a3b22',
       color: 'white',
       padding: '10px 20px',
       borderRadius: '5px',
       boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-      display: isDropdownOpen ? 'block' : 'none',
-      zIndex: 1001,
+      display: 'none',
+      minWidth: '100px',
+      zIndex: 10,
+    },
+    dropdownShow: {
+      display: 'block',
     },
     dropdownItem: {
       padding: '5px 10px',
@@ -171,17 +214,17 @@ const Menu = ({ user, logoutUser }) => {
       borderTop: '1px solid #ddd',
       textAlign: 'center',
       marginTop: 'auto',
-      fontFamily: "'Playfair Display', serif",
     },
   };
 
   return (
     <div style={styles.pageWrapper}>
+      {/* Navbar */}
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
           <div style={styles.navLeft}>
             <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
-            <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 'bold', color: 'white' }}>Kape Kalakal</span>
+            <span style={styles.navLink}>Kape Kalakal</span>
           </div>
           <div style={styles.navRight}>
             <Link to="/dashboard" style={styles.navLink}>HOME</Link>
@@ -197,49 +240,40 @@ const Menu = ({ user, logoutUser }) => {
             <Link to="/settings" style={styles.navLink}>SETTINGS</Link>
             <div style={styles.dropdown} onClick={toggleDropdown}>
               <button style={styles.dropdownButton}>
-                <span>{user?.name || 'User'}</span> {/* Shows 'Guest' if user name is not found */}
-                <span style={styles.icon}>▼</span>
+                <span>{user?.name}</span>
+                <span>▼</span>
               </button>
-              <div
-                style={{
-                  ...styles.dropdownMenu,
-                  ...(isDropdownOpen ? styles.dropdownShow : {}),
-                }}
-              >
+              <div style={{ ...styles.dropdownMenu, ...(isDropdownOpen ? styles.dropdownShow : {}) }}>
                 <div style={styles.dropdownItem} onClick={logoutHandler}>Logout</div>
               </div>
             </div>
             <div style={styles.cartWrapper} onClick={handleCartClick}>
               <FaShoppingCart style={styles.cartIcon} />
-              {totalItems > 0 && <span style={styles.cartCount}>{totalItems}</span>}
+              {totalProducts > 0 && <span style={styles.cartCount}>{totalProducts}</span>}
             </div>
           </div>
         </nav>
       </div>
 
-      {/* Product Section */}
+      {/* Products Section */}
       <div style={{ padding: '20px' }}>
         {loading && <p>Loading products...</p>}
         {error && <p style={{ color: 'red' }}>{error}</p>}
-
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
           {products.map(product => (
-            <div
-              key={product._id}
-              style={{
-                backgroundColor: '#3e2a1a',
-                color: 'white',
-                fontFamily: "'Playfair Display', serif",
-                fontWeight: 'bold',
-                border: '1px solid #aaa',
-                borderRadius: '10px',
-                padding: '15px',
-                margin: '10px',
-                width: '250px',
-                textAlign: 'center',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.4)'
-              }}
-            >
+            <div key={product._id} style={{
+              backgroundColor: '#3e2a1a',
+              color: 'white',
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 'bold',
+              border: '1px solid #aaa',
+              borderRadius: '10px',
+              padding: '15px',
+              margin: '10px',
+              width: '250px',
+              textAlign: 'center',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.4)'
+            }}>
               <img
                 src={`http://localhost:5200/uploads/${product.image}`}
                 alt={product.name}
@@ -249,7 +283,7 @@ const Menu = ({ user, logoutUser }) => {
               <p>{product.description}</p>
               <p><strong>₱{product.price.toFixed(2)}</strong></p>
               <button
-                onClick={() => handleOrder(product)}
+                onClick={() => handleAddToCartClick(product)}
                 style={{
                   padding: '10px 20px',
                   cursor: 'pointer',
@@ -267,9 +301,50 @@ const Menu = ({ user, logoutUser }) => {
         </div>
       </div>
 
+      {/* Modal */}
+      {modalProduct && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', zIndex: 999
+        }}>
+          <div style={{
+            backgroundColor: '#5a3b22', padding: '20px', borderRadius: '10px',
+            width: '300px', textAlign: 'center', color: '#ffffff'
+          }}>
+            <h3>{modalProduct.name}</h3>
+            <p>Price: ₱{modalProduct.price.toFixed(2)}</p>
+            <label>
+              Size:
+              <select value={size} onChange={(e) => setSize(e.target.value)} style={{ margin: '10px' }}>
+                <option value="Small">Small</option>
+                <option value="Medium">Medium</option>
+                <option value="Large">Large</option>
+              </select>
+            </label>
+            <br />
+            <label>
+              Quantity:
+              <input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                style={{ margin: '10px', width: '60px' }}
+              />
+            </label>
+            <p style={{ color: 'yellow', fontWeight: 'bold' }}>
+            Total: ₱{calculateTotal(modalProduct.price).toFixed(2)}
+            </p>
+            <button onClick={confirmAddToCart} style={{ marginRight: '10px', cursor: 'pointer' }}>Confirm</button>
+            <button onClick={() => setModalProduct(null)} style={{ cursor: 'pointer' }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <footer style={styles.footer}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', padding: '0 20px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', padding: '0 20px', color: 'white' }}>
           <div style={{ flex: '1 1 250px', margin: '10px' }}>
             <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Customer Service</h4>
             <p>Need help? Our team is here for you 24/7.</p>
@@ -290,7 +365,7 @@ const Menu = ({ user, logoutUser }) => {
           </div>
         </div>
         <div style={{ marginTop: '20px' }}>
-          <p>© 2025 Kape Kalakal. All Rights Reserved.</p>
+        <p style={{ color: 'white' }}>© 2025 Kape Kalakal. All Rights Reserved.</p>
         </div>
       </footer>
     </div>

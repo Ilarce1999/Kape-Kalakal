@@ -1,4 +1,3 @@
-// middleware/validationMiddleware.js
 import { body, param, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import OrderModel from '../models/OrderModel.js';
@@ -6,77 +5,94 @@ import User from '../models/UserModel.js';
 import {
   BadRequestError,
   NotFoundError,
-  UnauthorizedError
+  UnauthorizedError,
 } from '../errors/customErrors.js';
 
-// Reusable error handler for validation errors
+// Common error handler
 const withValidationErrors = (validateValues) => {
   return [
     ...validateValues,
     (req, res, next) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        const errorMessages = errors.array().map((error) => error.msg);
-        
-        // Custom error handling based on the type of message
-        if (errorMessages[0].toLowerCase().includes('no order')) {
+        const errorMessages = errors.array().map((err) => err.msg);
+
+        const firstError = errorMessages[0].toLowerCase();
+
+        if (firstError.includes('no order')) {
           throw new NotFoundError(errorMessages.join(', '));
         }
-        if (errorMessages[0].toLowerCase().includes('not authorized')) {
+        if (firstError.includes('not authorized')) {
           throw new UnauthorizedError('Not authorized to access this route');
         }
         throw new BadRequestError(errorMessages.join(', '));
       }
       next();
-    }
+    },
   ];
 };
 
-// Validation for creating and editing an order
+// Validation for order creation/editing
 export const validateOrder = withValidationErrors([
-  body('drinkName')
-    .notEmpty()
-    .withMessage('Drink name is required'),
+  body('items')
+    .isArray({ min: 1 })
+    .withMessage('Items must be a non-empty array'),
 
-  body('size')
+  body('items.*.name')
     .notEmpty()
-    .withMessage('Size is required')
-    .isIn(['Small', 'Medium', 'Large'])
-    .withMessage('Size must be one of Small, Medium, Large'),
+    .withMessage('Each item must have a name'),
 
-  body('quantity')
+  body('items.*.quantity')
     .isInt({ min: 1 })
-    .withMessage('Quantity must be at least 1')
+    .withMessage('Each item must have a quantity of at least 1'),
 
-  // Removed totalPrice validation
+  body('items.*.size')
+    .notEmpty()
+    .withMessage('Each item must have a size')
+    .isIn(['Small', 'Medium', 'Large'])
+    .withMessage('Size must be one of Small, Medium, or Large'),
+
+  body('subtotal')
+    .isNumeric()
+    .withMessage('Subtotal must be a number'),
+
+  body('deliveryFee')
+    .isNumeric()
+    .withMessage('Delivery fee must be a number'),
+
+  body('total')
+    .isNumeric()
+    .withMessage('Total must be a number'),
 ]);
 
-// Validation for ID parameter (GET, PATCH, DELETE)
+
+// Validation for order ID access (GET, PATCH, DELETE)
 export const validateIdParam = withValidationErrors([
-  param('id')
-    .custom(async (value, { req }) => {
-      const isValidMongoId = mongoose.Types.ObjectId.isValid(value);
-      if (!isValidMongoId) {
-        throw new BadRequestError('Invalid MongoDB id');
-      }
+  param('id').custom(async (value, { req }) => {
+    const isValidId = mongoose.Types.ObjectId.isValid(value);
+    if (!isValidId) {
+      throw new BadRequestError('Invalid MongoDB id');
+    }
 
-      const order = await OrderModel.findById(value);
-      if (!order) {
-        throw new NotFoundError(`No order with id ${value}`);
-      }
+    const order = await OrderModel.findById(value);
+    if (!order) {
+      throw new NotFoundError(`No order with id ${value}`);
+    }
 
-      const isAdminOrSuperAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
-      const isOwner = req.user.userId === order.orderedBy.toString();
+    const isOwner = req.user.userId === order.orderedBy.toString();
+    const isAdmin = ['admin', 'superadmin'].includes(req.user.role);
 
-      if (!isAdminOrSuperAdmin && !isOwner) {
-        throw new UnauthorizedError('Not authorized to access this route');
-      }
-    })
+    if (!isOwner && !isAdmin) {
+      throw new UnauthorizedError('Not authorized to access this route');
+    }
+  }),
 ]);
 
-// Validation for user registration
+// Validation for registration
 export const validateRegisterInput = withValidationErrors([
-  body('name').notEmpty().withMessage('Name is required'),
+  body('name')
+    .notEmpty()
+    .withMessage('Name is required'),
 
   body('email')
     .notEmpty()
@@ -96,10 +112,12 @@ export const validateRegisterInput = withValidationErrors([
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters long'),
 
-  body('location').notEmpty().withMessage('Location is required')
+  body('location')
+    .notEmpty()
+    .withMessage('Location is required'),
 ]);
 
-// Validation for user login
+// Validation for login
 export const validateLoginInput = withValidationErrors([
   body('email')
     .notEmpty()
@@ -107,12 +125,16 @@ export const validateLoginInput = withValidationErrors([
     .isEmail()
     .withMessage('Invalid email format'),
 
-  body('password').notEmpty().withMessage('Password is required')
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required'),
 ]);
 
 // Validation for updating user
 export const validateUpdateUserInput = withValidationErrors([
-  body('name').notEmpty().withMessage('Name is required'),
+  body('name')
+    .notEmpty()
+    .withMessage('Name is required'),
 
   body('email')
     .notEmpty()
@@ -133,5 +155,7 @@ export const validateUpdateUserInput = withValidationErrors([
       }
     }),
 
-  body('location').notEmpty().withMessage('Location is required')
+  body('location')
+    .notEmpty()
+    .withMessage('Location is required'),
 ]);

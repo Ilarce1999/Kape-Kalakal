@@ -23,16 +23,10 @@ const AllUsers = () => {
   const [users, setUsers] = useState(initialUsers);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    location: '',
-    role: 'user',
-  });
-
   const navigate = useNavigate();
   const location = useLocation();
+
+  const navbarHeight = '10%';
 
   const getLinkStyle = (path) => ({
     color: location.pathname === path ? '#FFD700' : 'white',
@@ -56,78 +50,29 @@ const AllUsers = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const handleDelete = async (userId) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this user?');
+    if (!confirmDelete) return;
 
-  const handleAddUser = async (e) => {
-    e.preventDefault();
     try {
-      const response = await customFetch.post('/users/register', formData);
-      setUsers(prev => [...prev, response.data.user]);
-      toast.success('User added successfully!');
-      setFormData({ name: '', email: '', location: '', role: 'user' });
-    } catch (err) {
-      toast.error(err?.response?.data?.msg || 'Error adding user');
+      const response = await customFetch.delete(`/users/users/${userId}`); // Ensure this matches your API route
+      console.log("DELETE SUCCESS:", response.data);
+      setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId)); // Remove user from local state
+      toast.success('User deleted successfully');
+    } catch (error) {
+      console.error("DELETE ERROR:", error.response?.data || error.message);
+      toast.error(error.response?.data?.msg || 'Failed to delete user');
     }
   };
 
   return (
-    <div style={{
-      backgroundColor: '#2c1b0b',
-      minHeight: '100vh',
-      fontFamily: "'Playfair Display', serif"
-    }}>
-      <style>
-        {`
-          @media (max-width: 768px) {
-            .nav-items {
-              flex-direction: column;
-              align-items: flex-start;
-              background-color: #2c1b0b;
-              width: 100%;
-              padding: 10px;
-              display: none;
-            }
-            .nav-items.show {
-              display: flex;
-            }
-            .hamburger {
-              display: block;
-              color: white;
-              font-size: 24px;
-              background: none;
-              border: none;
-              cursor: pointer;
-            }
-            .nav-items a {
-              padding: 10px;
-              font-size: 1rem;
-              font-family: 'Playfair Display', serif;
-            }
-          }
-          @media (min-width: 769px) {
-            .hamburger {
-              display: none;
-            }
-            .nav-items {
-              display: flex !important;
-              flex-direction: row;
-              justify-content: flex-end;
-            }
-            .nav-items a {
-              font-size: 0.95rem;
-            }
-          }
-        `}
-      </style>
+    <div style={{ paddingTop: '120px', backgroundColor: '#2c1b0b', minHeight: '100vh', fontFamily: "'Playfair Display', serif" }}>
 
       {/* Navbar */}
       <div style={{
         backgroundColor: '#5a3b22',
         width: '100%',
-        height: '80px',
+        height: navbarHeight,
         position: 'fixed',
         top: 0,
         zIndex: 1000,
@@ -200,49 +145,25 @@ const AllUsers = () => {
       </div>
 
       {/* Content */}
-      <div style={{
-        padding: '120px 40px 40px 40px'
-      }}>
+      <div style={{ padding: '40px' }}>
         <h2 style={{ marginBottom: '20px', fontFamily: "'Playfair Display', serif", color: 'white' }}>Manage Users</h2>
 
-        {/* Add User Form */}
-        <form onSubmit={handleAddUser} style={{
-          marginBottom: '40px',
-          backgroundColor: '#fff8f0',
-          padding: '16px',
-          borderRadius: '10px',
-          maxWidth: '400px'
-        }}>
-          <label style={{ fontWeight: 'bold', color: '#5c3a1d' }}>Name:</label>
-          <input type="text" name="name" value={formData.name} onChange={handleInputChange} required style={inputStyle} />
-
-          <label style={{ fontWeight: 'bold', color: '#5c3a1d' }}>Email:</label>
-          <input type="email" name="email" value={formData.email} onChange={handleInputChange} required style={inputStyle} />
-
-          <label style={{ fontWeight: 'bold', color: '#5c3a1d' }}>Location:</label>
-          <input type="text" name="location" value={formData.location} onChange={handleInputChange} required style={inputStyle} />
-
-          <label style={{ fontWeight: 'bold', color: '#5c3a1d' }}>Role:</label>
-          <select name="role" value={formData.role} onChange={handleInputChange} required style={inputStyle}>
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
-
-          <button type="submit" style={{
+        <button
+          style={{
             backgroundColor: '#5a3b22',
             color: 'white',
-            padding: '12px 20px',
+            fontSize: '1rem',
+            padding: '10px 20px',
             border: 'none',
             borderRadius: '5px',
-            fontSize: '1rem',
+            marginBottom: '20px',
             cursor: 'pointer',
-            width: '100%'
-          }}>
-            Submit
-          </button>
-        </form>
+          }}
+          onClick={() => navigate('/superadmin/addUser')}
+        >
+          Add New User
+        </button>
 
-        {/* Users Table */}
         <table style={{
           width: '100%',
           borderCollapse: 'collapse',
@@ -268,17 +189,13 @@ const AllUsers = () => {
                 <td style={tdStyle}>{user.role}</td>
                 <td style={tdStyle}>
                   <button
-                    onClick={() =>
-                      navigate(`/superadmin/editUser/${user._id}`, { state: user })
-                    }
+                    onClick={() => navigate(`/superadmin/editUser/${user._id}`, { state: { ...user } })}
                     style={editButtonStyle}
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() =>
-                      navigate(`/superadmin/deleteUser/${user._id}`, { state: user })
-                    }
+                    onClick={() => handleDelete(user._id)}
                     style={deleteButtonStyle}
                   >
                     Delete
@@ -293,24 +210,35 @@ const AllUsers = () => {
   );
 };
 
-// Styles
 const thStyle = {
-  padding: '12px', border: '1px solid #ddd', backgroundColor: '#444', color: '#fff'
+  padding: '12px',
+  border: '1px solid #ddd',
+  backgroundColor: '#444',
+  color: '#fff'
 };
+
 const tdStyle = {
-  padding: '10px', border: '1px solid #ddd'
+  padding: '10px',
+  border: '1px solid #ddd'
 };
-const inputStyle = {
-  width: '100%', padding: '12px', marginBottom: '15px',
-  borderRadius: '5px', border: '1px solid #ccc'
-};
+
 const editButtonStyle = {
-  marginRight: '10px', padding: '5px 10px', backgroundColor: '#2196F3',
-  color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer'
+  marginRight: '10px',
+  padding: '5px 10px',
+  backgroundColor: '#2196F3',
+  color: 'white',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer'
 };
+
 const deleteButtonStyle = {
-  padding: '5px 10px', backgroundColor: '#f44336',
-  color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer'
+  padding: '5px 10px',
+  backgroundColor: '#f44336',
+  color: 'white',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer'
 };
 
 export default AllUsers;

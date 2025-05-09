@@ -17,7 +17,7 @@ import {
   SuperAdmin,
 } from './pages';
 
-import Users from './pages/admin/users';
+//import Users from './pages/admin/users';
 import AllUsers from './pages/superadmin/allUsers';
 import AddUser from './pages/superadmin/addUser';
 import EditUser from './pages/superadmin/editUser';
@@ -25,6 +25,9 @@ import DeleteUser from './pages/superadmin/deleteUser';
 import Products from './pages/superadmin/manageProducts';
 import UpdateProduct from './pages/superadmin/updateProduct';
 import DeleteProduct from './pages/superadmin/deleteProduct';
+
+import AllOrders from './pages/admin/orders';
+import AdminProducts from './pages/admin/products';
 
 
 // ✅ Login imported separately with loader and action
@@ -34,12 +37,12 @@ import Login, { loader as loginLoader, action as loginAction } from './pages/log
 import { action as registerAction } from './pages/register';
 import { loader as dashboardLoader } from './pages/dashboard';
 import { loader as aboutusLoader } from './pages/aboutus';
-//import { loader as menuLoader } from './pages/menu';
+import { loader as menuLoader } from './pages/menu';
 import { loader as settingsLoader } from './pages/settings';
 import { loader as adminDashboardLoader } from './pages/admin';
-import { loader as usersLoader } from './pages/admin/users';
 import { loader as superAdminLoader } from './pages/superadmin';
 import { loader as allUsersLoader } from './pages/superadmin/allUsers';
+
 
 const router = createBrowserRouter([
   {
@@ -68,12 +71,6 @@ const router = createBrowserRouter([
     path: '/admin',
     element: <Admin />,
     loader: adminDashboardLoader,
-    errorElement: <Error />,
-  },
-  {
-    path: '/admin/users',
-    element: <Users />,
-    loader: usersLoader,
     errorElement: <Error />,
   },
   {
@@ -127,6 +124,16 @@ const router = createBrowserRouter([
     errorElement: <Error />,
   },
   {
+    path: '/admin/orders',
+    element: <AllOrders />,
+    errorElement: <Error />,
+  },
+  {
+    path: '/admin/products',
+    element: <AdminProducts />,
+    errorElement: <Error />,
+  },
+  {
     path: '/dashboard',
     element: <Dashboard />,
     loader: dashboardLoader,
@@ -135,7 +142,7 @@ const router = createBrowserRouter([
   {
     path: '/menu',
     element: <Menu />,
-    //loader: menuLoader,
+    loader: menuLoader,
     errorElement: <Error />,
   },
   {
