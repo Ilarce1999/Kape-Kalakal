@@ -268,10 +268,17 @@ const ManageProducts = () => {
     navigate(`/superadmin/updateProduct/${product._id}`, { state: { product } });
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const confirmed = window.confirm('Are you sure you want to delete this product?');
-    if (confirmed) {
-      navigate(`/superadmin/deleteProduct/${id}`);
+    if (!confirmed) return;
+  
+    try {
+      await axios.delete(`/api/products/${id}`);
+      toast.success('Product deleted successfully');
+      // Remove deleted product from state
+      setProducts((prev) => prev.filter((prod) => prod._id !== id));
+    } catch (error) {
+      toast.error('Failed to delete product');
     }
   };
 

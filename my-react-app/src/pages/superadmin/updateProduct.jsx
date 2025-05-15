@@ -93,9 +93,11 @@ const UpdateProduct = () => {
     name: product.name,
     description: product.description,
     price: product.price,
-    stock: product.stock,  // Added stock to form data
+    stock: product.stock,
   });
-  const [previewImage, setPreviewImage] = useState(product.image);
+  const [previewImage, setPreviewImage] = useState(
+    product.image ? `http://localhost:5200/${product.image}` : null
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -139,18 +141,20 @@ const UpdateProduct = () => {
     dataToSubmit.append('name', formData.name);
     dataToSubmit.append('description', formData.description);
     dataToSubmit.append('price', formData.price);
-    dataToSubmit.append('stock', formData.stock);  // Send stock along with other data
+    dataToSubmit.append('stock', formData.stock);
     if (formData.image) dataToSubmit.append('image', formData.image);
 
     try {
-      await axios.put(`/api/products/${product._id}`, dataToSubmit, {
+      await axios.patch(`/api/products/${product._id}`, dataToSubmit, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      navigate('/superadmin/products');
+      toast.success("Product updated successfully!");
+      navigate('/superadmin/manageProducts');
     } catch (error) {
       console.error('Error updating product:', error);
+      toast.error("Failed to update product.");
     }
   };
 
@@ -211,16 +215,23 @@ const UpdateProduct = () => {
           />
         </div>
         <div style={styles.formGroup}>
-          {previewImage && (
-            <div style={styles.imagePreview}>
-              <img
-                src={previewImage}
-                alt="Product Preview"
-                style={styles.previewImage}
-              />
-            </div>
-          )}
+          <label style={styles.label}>Image (optional):</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            style={styles.fileInput}
+          />
         </div>
+        {previewImage && (
+          <div style={styles.imagePreview}>
+            <img
+              src={previewImage}
+              alt="Product Preview"
+              style={styles.previewImage}
+            />
+          </div>
+        )}
         <button type="submit" style={styles.button}>Update Product</button>
       </form>
       <button
