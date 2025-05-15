@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const styles = {
   container: {
     maxWidth: '600px',
     margin: 'auto',
     padding: '20px',
-    backgroundColor: '#f9f9f9', // Keeps the container's background light
+    backgroundColor: '#f9f9f9',
     borderRadius: '8px',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
     marginTop: '50px',
@@ -86,15 +87,15 @@ const styles = {
 const UpdateProduct = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { product } = location.state; // Get the product details from the state
+  const { product } = location.state;
 
   const [formData, setFormData] = useState({
     name: product.name,
     description: product.description,
     price: product.price,
-    // image: null, // Initially no image
+    stock: product.stock,  // Added stock to form data
   });
-  const [previewImage, setPreviewImage] = useState(product.image); // Preview image if already exists
+  const [previewImage, setPreviewImage] = useState(product.image);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -106,23 +107,39 @@ const UpdateProduct = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+
+    if (!file) {
+      setFormData((prevState) => ({
+        ...prevState,
+        image: null,
+      }));
+      setPreviewImage(null);
+      return;
+    }
+
     setFormData((prevState) => ({
       ...prevState,
       image: file,
     }));
 
-    // Preview image
     const reader = new FileReader();
     reader.onloadend = () => setPreviewImage(reader.result);
-    if (file) reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.name || !formData.description || !formData.price || !formData.stock) {
+      toast.error("All fields must be filled!");
+      return;
+    }
+
     const dataToSubmit = new FormData();
     dataToSubmit.append('name', formData.name);
     dataToSubmit.append('description', formData.description);
     dataToSubmit.append('price', formData.price);
+    dataToSubmit.append('stock', formData.stock);  // Send stock along with other data
     if (formData.image) dataToSubmit.append('image', formData.image);
 
     try {
@@ -131,18 +148,16 @@ const UpdateProduct = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      navigate('/superadmin/products'); // Redirect to the product list after update
+      navigate('/superadmin/products');
     } catch (error) {
       console.error('Error updating product:', error);
     }
   };
 
   useEffect(() => {
-    // Apply global style for the background color of the entire page
-    document.body.style.backgroundColor = '#5a3b22'; // Brown background
-    document.body.style.color = '#fff'; // White text for contrast
+    document.body.style.backgroundColor = '#5a3b22';
+    document.body.style.color = '#fff';
     return () => {
-      // Reset body background color when leaving the component
       document.body.style.backgroundColor = '';
       document.body.style.color = '';
     };
@@ -179,6 +194,17 @@ const UpdateProduct = () => {
             type="number"
             name="price"
             value={formData.price}
+            onChange={handleChange}
+            required
+            style={styles.input}
+          />
+        </div>
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Stock:</label>
+          <input
+            type="number"
+            name="stock"
+            value={formData.stock}
             onChange={handleChange}
             required
             style={styles.input}

@@ -103,9 +103,9 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
-    maxWidth: '400px',
+    maxWidth: '600px',
     marginBottom: '30px',
-    backgroundColor: '#3e2c23', // dark brown background
+    backgroundColor: '#3e2c23',
     padding: '20px',
     borderRadius: '10px',
     boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
@@ -113,12 +113,12 @@ const styles = {
   input: {
     padding: '10px',
     borderRadius: '5px',
-    border: '1px solid #8B7D7B', // warm grey border
-    backgroundColor: '#f3f1ef',   // light beige input bg
+    border: '1px solid #8B7D7B',
+    backgroundColor: '#f3f1ef',
   },
   button: {
     padding: '10px',
-    backgroundColor: '#6f4e37', // medium brown
+    backgroundColor: '#6f4e37',
     color: 'white',
     fontWeight: 'bold',
     border: 'none',
@@ -126,27 +126,24 @@ const styles = {
     cursor: 'pointer',
     transition: 'background-color 0.3s ease',
   },
-  buttonHover: {
-    backgroundColor: '#5a3b22',
-  },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
     marginTop: '20px',
-    backgroundColor: '#f5f5f5', // light greyish bg
+    backgroundColor: '#f5f5f5',
     borderRadius: '8px',
     overflow: 'hidden',
   },
   th: {
     textAlign: 'left',
     padding: '10px',
-    backgroundColor: '#3e2c23', // dark brown
+    backgroundColor: '#3e2c23',
     color: 'white',
   },
   td: {
     padding: '10px',
     borderBottom: '1px solid #ccc',
-    backgroundColor: '#fcfaf9', // off-white for rows
+    backgroundColor: '#fcfaf9',
   },
   actionBtn: {
     marginRight: '5px',
@@ -157,18 +154,24 @@ const styles = {
     fontWeight: 'bold',
   },
   editBtn: {
-    backgroundColor: '#007BFF', // blue
+    backgroundColor: '#007BFF',
     color: 'white',
   },
   deleteBtn: {
-    backgroundColor: '#DC3545', // red
+    backgroundColor: '#DC3545',
     color: 'white',
   },
 };
 
 const ManageProducts = () => {
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState({ name: '', description: '', price: '', image: null });
+  const [form, setForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    stock: '',
+    image: null,
+  });
   const [editingId, setEditingId] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState({ name: 'Super Admin' });
@@ -177,11 +180,15 @@ const ManageProducts = () => {
   const location = useLocation();
 
   const fetchProducts = async () => {
-    const res = await axios.get('/api/products');
-    setProducts(res.data);
+    try {
+      const res = await axios.get('/api/products');
+      setProducts(res.data);
+    } catch (error) {
+      toast.error('Failed to fetch products');
+    }
   };
 
-    const logoutUser = async () => {
+  const logoutUser = async () => {
     try {
       await customFetch.get('/auth/logout');
       toast.success('Logging out...');
@@ -190,7 +197,6 @@ const ManageProducts = () => {
       toast.error('Logout failed');
     }
   };
-
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
@@ -202,42 +208,70 @@ const ManageProducts = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    if (!form.name || !form.description || !form.price || !form.stock) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+  
+    const price = Number(form.price);
+    const stock = Number(form.stock);
+  
+    if (price <= 0 || stock < 0) {
+      toast.error('Please enter valid price and stock values');
+      return;
+    }
+  
     const formData = new FormData();
     formData.append('name', form.name);
     formData.append('description', form.description);
-    formData.append('price', form.price);
-    if (form.image) formData.append('image', form.image);
-
+    formData.append('price', price);
+    formData.append('stock', stock);
+  
+    if (form.image) {
+      formData.append('image', form.image);
+    } else if (!editingId) {
+      toast.error('Please select an image');
+      return;
+    }
+  
     try {
       if (editingId) {
         await axios.patch(`/api/products/${editingId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
+        toast.success('Product updated successfully');
       } else {
         const res = await axios.post('/api/products', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        setProducts([...products, res.data]);
+        toast.success('Product added successfully');
+        setProducts((prev) => [...prev, res.data]);
       }
-
-      setForm({ name: '', description: '', price: '', image: null });
+  
+      setForm({
+        name: '',
+        description: '',
+        price: '',
+        stock: '',
+        image: null,
+      });
       setEditingId(null);
       fetchProducts();
     } catch (error) {
-      console.error('Error submitting product:', error);
+      console.error('Error submitting product:', error?.response?.data || error.message);
+      toast.error(error?.response?.data?.msg || 'Failed to submit product');
     }
   };
-
   const handleEdit = (product) => {
-    navigate(`/superadmin/updateProduct/${product.id}`, {
-      state: { product: product } // Pass the product details if needed
-    });
+    // Navigate to update page with product data
+    navigate(`/superadmin/updateProduct/${product._id}`, { state: { product } });
   };
 
   const handleDelete = (id) => {
     const confirmed = window.confirm('Are you sure you want to delete this product?');
     if (confirmed) {
-      navigate(`/superadmin/deleteProduct/${id}`); // Redirect to delete product page
+      navigate(`/superadmin/deleteProduct/${id}`);
     }
   };
 
@@ -248,19 +282,16 @@ const ManageProducts = () => {
 
   return (
     <div>
-      {/* Navbar */}
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
           <div style={styles.navLeft}>
             <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
             <span style={styles.logoText}>Kape Kalakal - Super Admin</span>
           </div>
-
           <div style={styles.navItems}>
             <Link to="/superadmin" style={getLinkStyle('/superadmin')}>HOME</Link>
             <Link to="/superadmin/manageProducts" style={getLinkStyle('/superadmin/manageProducts')}>MANAGE PRODUCTS</Link>
             <Link to="/superadmin/allUsers" style={getLinkStyle('/superadmin/allUsers')}>MANAGE USERS</Link>
-
             <div style={styles.dropdown} onClick={toggleDropdown}>
               <button style={styles.dropdownButton}>
                 <span>{currentUser?.name}</span>
@@ -274,7 +305,6 @@ const ManageProducts = () => {
         </nav>
       </div>
 
-      {/* Content */}
       <div style={styles.content}>
         <h2 style={styles.heading}>Manage Products</h2>
 
@@ -290,20 +320,33 @@ const ManageProducts = () => {
             style={styles.input}
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            placeholder="Product Description"
+            placeholder="Description"
             required
           />
           <input
             style={styles.input}
+            type="number"
+            min="0"
+            step="0.01"
             value={form.price}
             onChange={(e) => setForm({ ...form, price: e.target.value })}
-            placeholder="Product Price"
+            placeholder="Price"
+            required
+          />
+          <input
+            style={styles.input}
             type="number"
+            min="0"
+            step="1"
+            value={form.stock}
+            onChange={(e) => setForm({ ...form, stock: e.target.value })}
+            placeholder="Stock"
             required
           />
           <input
             style={styles.input}
             type="file"
+            accept="image/*"
             onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
           />
           <button type="submit" style={styles.button}>
@@ -317,30 +360,30 @@ const ManageProducts = () => {
               <th style={styles.th}>Name</th>
               <th style={styles.th}>Description</th>
               <th style={styles.th}>Price</th>
+              <th style={styles.th}>Stock</th>
               <th style={styles.th}>Image</th>
               <th style={styles.th}>Actions</th>
             </tr>
           </thead>
           <tbody>
-          {products.map((prod) => (
-          <tr key={prod.id || prod._id || `${prod.name}-${prod.price}`}>
+            {products.map((prod) => (
+              <tr key={prod._id || prod.id}>
                 <td style={styles.td}>{prod.name}</td>
                 <td style={styles.td}>{prod.description}</td>
                 <td style={styles.td}>₱{prod.price}</td>
+                <td style={styles.td}>{prod.stock}</td>
                 <td style={styles.td}>
-                <img src={`http://localhost:5200/uploads/${prod.image}`} alt={prod.name} width={50} />
+                  {prod.image ? (
+                    <img src={`http://localhost:5200/${prod.image}`} alt={prod.name} width={50} />
+                  ) : (
+                    'No Image'
+                  )}
                 </td>
                 <td style={styles.td}>
-                  <button
-                    onClick={() => handleEdit(prod)}
-                    style={{ ...styles.actionBtn, ...styles.editBtn }}
-                  >
+                  <button onClick={() => handleEdit(prod)} style={{ ...styles.actionBtn, ...styles.editBtn }}>
                     Edit
                   </button>
-                  <button
-                    onClick={() => handleDelete(prod.id)}
-                    style={{ ...styles.actionBtn, ...styles.deleteBtn }}
-                  >
+                  <button onClick={() => handleDelete(prod._id)} style={{ ...styles.actionBtn, ...styles.deleteBtn }}>
                     Delete
                   </button>
                 </td>

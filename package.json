@@ -16,6 +16,7 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.9",
+    "cloudinary": "^2.6.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "datauri": "^4.1.0",

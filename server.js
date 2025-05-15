@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
+import cloudinary from 'cloudinary';
 
 // Routers
 import orderRouter from './routes/orderRouter.js';
@@ -63,6 +64,12 @@ app.use('*', (req, res) => {
 
 // Error handler
 app.use(errorHandlerMiddleware);
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
 
 // Start Server
 const port = process.env.PORT || 5200;

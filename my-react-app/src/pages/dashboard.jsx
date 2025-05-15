@@ -324,6 +324,9 @@ const Dashboard = () => {
               <Link to="/aboutus" style={getLinkStyle('/aboutus')}>
                 ABOUT US
               </Link>
+              <Link to="/viewMyOrder" style={getLinkStyle('/viewMyOrder')}>
+                MY ORDERS
+              </Link>
               <Link to="/menu" style={getLinkStyle('/menu')}>
                 PRODUCTS
               </Link>

@@ -4,7 +4,8 @@ import {
   getAllOrders,
   getOrder,
   editOrder,
-  deleteOrder
+  deleteOrder,
+  getMyOrders // ✅ Import new controller
 } from '../controllers/orderController.js';
 
 import {
@@ -13,17 +14,20 @@ import {
 } from '../middleware/validationMiddleware.js';
 
 import { authenticateUser } from '../middleware/authMiddleware.js';
-import { checkRole } from '../middleware/checkRoleMiddleware.js'; // ✅ Import checkRole
+import { checkRole } from '../middleware/checkRoleMiddleware.js';
 
 const router = Router();
 
-// ✅ All routes require authentication
+// ✅ All routes below require login
 router.use(authenticateUser);
 
-// ✅ Restrict GET / to admin/superadmin only
+// ✅ New route: fetch orders of the logged-in user
+router.get('/my-orders', getMyOrders);
+
+// ✅ Only admins can get all orders
 router.route('/')
-  .get(checkRole(['admin', 'superadmin']), getAllOrders) // Only these roles can view all orders
-  .post(validateOrder, createOrder); // Any authenticated user can create an order
+  .get(checkRole(['admin', 'superadmin']), getAllOrders)
+  .post(validateOrder, createOrder);
 
 router.route('/:id')
   .get(validateIdParam, getOrder)

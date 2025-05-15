@@ -1,25 +1,35 @@
-import express from 'express';
+import { Router } from 'express';
+import multer from '../middleware/multerMiddleware.js'; // your multer config
 import {
   getAllProducts,
+  getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
+  decreaseProductStock
 } from '../controllers/productController.js';
-import upload from '../middleware/multerMiddleware.js'; // centralized multer config
 
+import { authenticateUser } from '../middleware/authMiddleware.js';
+import { checkRole } from '../middleware/checkRoleMiddleware.js';
 
-const router = express.Router();
+const router = Router();
 
-// GET all products
-router.get('/', getAllProducts);
+// All routes below require login
+router.use(authenticateUser);
 
-// POST create a new product with image upload
-router.post('/', upload.single('image'), createProduct);
+// Product routes
+router.route('/')
+  .get(getAllProducts)
+  // Use multer middleware to handle single image upload
+  .post(checkRole(['admin', 'superadmin']), multer.single('image'), createProduct);
 
-// PUT update a product by ID (with optional image upload)
-router.put('/:id', upload.single('image'), updateProduct);
+router.route('/:id')
+  .get(getProductById)
+  // Patch route with multer middleware to optionally update image
+  .patch(checkRole(['admin', 'superadmin']), multer.single('image'), updateProduct)
+  .delete(checkRole(['admin', 'superadmin']), deleteProduct);
 
-// DELETE a product by ID
-router.delete('/:id', deleteProduct);
+// Route to decrease stock during an order
+router.patch('/:id/decrease-stock', decreaseProductStock);
 
 export default router;

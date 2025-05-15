@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate, useLoaderData, redirect } from 'react-router-dom';
 import { FaShoppingCart } from 'react-icons/fa';
-import customFetch from '../../../utils/customFetch.js'; // Adjust this path as needed
+import customFetch from '../../../utils/customFetch.js';
+import axios from 'axios';
 
 export const loader = async () => {
   try {
@@ -24,26 +25,26 @@ const Menu = ({ logoutUser }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [modalProduct, setModalProduct] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [size, setSize] = useState('Small');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [stockError, setStockError] = useState('');
+
+  // State to track quantities per product
+  const [quantities, setQuantities] = useState({});
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   const totalProducts = orderDetails.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = orderDetails.reduce((acc, item) => acc + item.totalPrice, 0);
-  const DELIVERY_FEE = 50; 
+  const DELIVERY_FEE = 50;
 
   const handleCartClick = () => {
     const finalTotalPrice = totalPrice + DELIVERY_FEE;
-  
     if (orderDetails.length === 0) {
       localStorage.removeItem('orderDetails');
     } else {
       localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
     }
-  
     navigate('/checkout', { state: { orderDetails, totalPrice: finalTotalPrice, deliveryFee: DELIVERY_FEE } });
   };
 
@@ -63,74 +64,110 @@ const Menu = ({ logoutUser }) => {
     fetchProducts();
   }, []);
 
-  const sizeMultipliers = {
-    Small: 1,
-    Medium: 1.25,
-    Large: 1.5,
-  };
-
-  const calculateTotal = (basePrice) => {
-    return basePrice * quantity * sizeMultipliers[size];
-  };
+  const calculateTotal = (basePrice, quantity) => basePrice * quantity;
 
   const handleAddToCartClick = (product) => {
     setModalProduct(product);
-    setQuantity(1);
-    setSize('Small');
+    setStockError(''); // Reset stock error message
   };
 
-  const confirmAddToCart = () => {
-    if (!modalProduct) return;
-
-    const product = modalProduct;
+  const confirmAddToCart = async (product) => {
+    const quantity = quantities[product._id] || 1;
+  
+    if (product.stock < quantity) {
+      setStockError('Insufficient stock available');
+      return;
+    }
+  
     const newOrder = {
       productId: product._id,
       name: product.name,
       price: product.price,
       quantity,
-      size,
-      totalPrice: calculateTotal(product.price),
+      totalPrice: product.price * quantity,
     };
-
+  
     const existingOrder = orderDetails.find(
-      (item) => item.productId === product._id && item.size === size
+      (item) => item.productId === product._id
     );
-
+  
     let updatedOrders;
-
     if (existingOrder) {
       updatedOrders = orderDetails.map((item) =>
-        item.productId === product._id && item.size === size
+        item.productId === product._id
           ? {
               ...item,
               quantity: item.quantity + quantity,
-              totalPrice: (item.quantity + quantity) * product.price * sizeMultipliers[size],
+              totalPrice: (item.quantity + quantity) * product.price,
             }
           : item
       );
     } else {
       updatedOrders = [...orderDetails, newOrder];
     }
-
-    setOrderDetails(updatedOrders);
-    localStorage.setItem('orderDetails', JSON.stringify(updatedOrders));
-    setModalProduct(null);
+  
+    try {
+      await axios.patch(`/api/products/${product._id}/decrease-stock`, { quantity });
+      setOrderDetails(updatedOrders);
+      localStorage.setItem('orderDetails', JSON.stringify(updatedOrders));
+      setStockError('');
+      // Optionally reset quantity for this product to 1
+      setQuantities((prev) => ({ ...prev, [product._id]: 1 }));
+    } catch (error) {
+      setStockError('Failed to update stock');
+    }
   };
 
   const logoutHandler = () => {
-    // Remove the user from localStorage
     localStorage.removeItem('user');
-    
-    // Clear cookies (for JWT or other cookies)
     document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
-    
-    // Redirect the user to login page
     navigate('/login');
-    
-    // Call the logoutUser function if provided (optional)
     if (logoutUser) logoutUser();
   };
 
+  const handleQuantityIncrease = (productId) => {
+    setQuantities((prev) => {
+      const currentQuantity = prev[productId] || 1;
+      // Get product stock by productId dynamically
+      const productStock = products.find(p => p._id === productId)?.stock || 1;
+  
+      if (currentQuantity < productStock) {
+        return { ...prev, [productId]: currentQuantity + 1 };
+      }
+      return prev;
+    });
+  };
+  
+  const handleQuantityDecrease = (productId) => {
+    setQuantities((prev) => {
+      const currentQuantity = prev[productId] || 1;
+      if (currentQuantity > 1) {
+        return { ...prev, [productId]: currentQuantity - 1 };
+      }
+      return prev;
+    });
+  };
+  
+  const handleInputChange = (e, productId) => {
+    const inputValue = e.target.value;
+  
+    if (!inputValue || isNaN(inputValue)) {
+      setQuantities((prev) => ({
+        ...prev,
+        [productId]: 1,
+      }));
+      return;
+    }
+  
+    const productStock = products.find(p => p._id === productId)?.stock || 1;
+    const value = Math.max(1, Math.min(Number(inputValue), productStock));
+  
+    setQuantities((prev) => ({
+      ...prev,
+      [productId]: value,
+    }));
+  };
+  
   const styles = {
     fontFamily: "'Playfair Display', serif",
     color: 'white',
@@ -188,9 +225,7 @@ const Menu = ({ logoutUser }) => {
       minWidth: '100px',
       zIndex: 10,
     },
-    dropdownShow: {
-      display: 'block',
-    },
+    dropdownShow: { display: 'block' },
     dropdownItem: {
       padding: '5px 10px',
       cursor: 'pointer',
@@ -215,11 +250,83 @@ const Menu = ({ logoutUser }) => {
       textAlign: 'center',
       marginTop: 'auto',
     },
+    productCard: {
+      borderRadius: '15px',
+      backgroundColor: '#fff',
+      overflow: 'hidden',
+      boxShadow: '0px 6px 12px rgba(0, 0, 0, 0.1)',
+      transition: 'transform 0.3s ease',
+      display: 'flex',
+      flexDirection: 'column',
+    },
+    productImage: {
+      width: '100%',
+      height: '200px',
+      objectFit: 'contain',
+      transition: 'transform 0.3s ease',
+    },
+    productDetails: {
+      padding: '15px',
+      backgroundColor: '#fff',
+      color: '#333',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '10px',
+    },
+    productName: {
+      fontSize: '1.2rem',
+      fontWeight: 'bold',
+      color: '#333',
+    },
+    productDescription: {
+      fontSize: '1rem',
+      color: '#777',
+    },
+    productPrice: {
+      fontSize: '1.2rem',
+      fontWeight: 'bold',
+      color: '#2c1b0b',
+    },
+    quantityInput: {
+      width: '60px',
+      padding: '5px',
+      borderRadius: '5px',
+      fontSize: '1rem',
+      margin: '0 5px',
+      textAlign: 'center',
+      backgroundColor: '#f0f0f0',
+      border: '1px solid #ddd',
+    },
+    quantityControls: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    quantityButton: {
+      backgroundColor: '#2c1b0b',
+      color: 'white',
+      border: 'none',
+      padding: '5px 10px',
+      borderRadius: '5px',
+      cursor: 'pointer',
+    },
+    productButton: {
+      padding: '10px',
+      borderRadius: '5px',
+      backgroundColor: '#2c1b0b',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: '1rem',
+      color: '#fff',
+    },
   };
+
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div style={styles.pageWrapper}>
-      {/* Navbar */}
       <div style={styles.navbarWrapper}>
         <nav style={styles.navbar}>
           <div style={styles.navLeft}>
@@ -229,6 +336,7 @@ const Menu = ({ logoutUser }) => {
           <div style={styles.navRight}>
             <Link to="/dashboard" style={styles.navLink}>HOME</Link>
             <Link to="/aboutus" style={styles.navLink}>ABOUT US</Link>
+            <Link to="/viewMyOrder" style={styles.navLink}>MY ORDERS</Link>
             <NavLink
               to="/menu"
               style={({ isActive }) =>
@@ -238,135 +346,124 @@ const Menu = ({ logoutUser }) => {
               PRODUCTS
             </NavLink>
             <Link to="/settings" style={styles.navLink}>SETTINGS</Link>
+            <div style={styles.cartWrapper} onClick={handleCartClick}>
+              <FaShoppingCart style={styles.cartIcon} />
+              {totalProducts > 0 && (
+                <div style={styles.cartCount}>{totalProducts}</div>
+              )}
+            </div>
             <div style={styles.dropdown} onClick={toggleDropdown}>
               <button style={styles.dropdownButton}>
                 <span>{user?.name}</span>
                 <span>▼</span>
               </button>
-              <div style={{ ...styles.dropdownMenu, ...(isDropdownOpen ? styles.dropdownShow : {}) }}>
-                <div style={styles.dropdownItem} onClick={logoutHandler}>Logout</div>
+              <div
+                style={{
+                  ...styles.dropdownMenu,
+                  ...(isDropdownOpen ? styles.dropdownShow : {}),
+                }}
+              >
+                <div
+                  style={styles.dropdownItem}
+                  onClick={() => logoutHandler()}
+                >
+                  Logout
+                </div>
               </div>
-            </div>
-            <div style={styles.cartWrapper} onClick={handleCartClick}>
-              <FaShoppingCart style={styles.cartIcon} />
-              {totalProducts > 0 && <span style={styles.cartCount}>{totalProducts}</span>}
             </div>
           </div>
         </nav>
       </div>
 
-      {/* Products Section */}
       <div style={{ padding: '20px' }}>
-        {loading && <p>Loading products...</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {products.map(product => (
-            <div key={product._id} style={{
-              backgroundColor: '#3e2a1a',
-              color: 'white',
-              fontFamily: "'Playfair Display', serif",
-              fontWeight: 'bold',
-              border: '1px solid #aaa',
-              borderRadius: '10px',
-              padding: '15px',
-              margin: '10px',
-              width: '250px',
-              textAlign: 'center',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.4)'
-            }}>
-              <img
-                src={`http://localhost:5200/uploads/${product.image}`}
-                alt={product.name}
-                style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
-              />
-              <h3>{product.name}</h3>
-              <p>{product.description}</p>
-              <p><strong>₱{product.price.toFixed(2)}</strong></p>
-              <button
+        <h1 style={{ color: 'white' }}>Menu</h1>
+        <input
+          type="text"
+          placeholder="Search for coffee"
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            padding: '10px',
+            width: '25%',
+            borderRadius: '5px',
+            marginBottom: '20px',
+            fontSize: '1rem',
+          }}
+        />
+        
+        {stockError && <div style={{ color: 'red', marginBottom: '20px' }}>{stockError}</div>}
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '20px',
+          }}
+        >
+          {loading ? (
+            <div style={{ color: 'white' }}>Loading products...</div>
+          ) : error ? (
+            <div style={{ color: 'white' }}>Error: {error}</div>
+          ) : (
+            filteredProducts.map((product) => (
+              <div
+                key={product._id}
+                style={styles.productCard}
                 onClick={() => handleAddToCartClick(product)}
-                style={{
-                  padding: '10px 20px',
-                  cursor: 'pointer',
-                  background: '#ffd700',
-                  color: '#333',
-                  border: 'none',
-                  borderRadius: '5px',
-                  fontWeight: 'bold'
-                }}
               >
-                Add to Cart
-              </button>
-            </div>
-          ))}
+                <img
+                  src={`http://localhost:5200/${product.image}`}
+                  alt={product.name}
+                  style={styles.productImage}
+                />
+                <div style={styles.productDetails}>
+                  <h3 style={styles.productName}>{product.name}</h3>
+                  <p style={styles.productDescription}>{product.description}</p>
+            
+                  <div style={styles.productPrice}>₱{product.price}</div>
+
+                  <div style={styles.quantityControls}>
+                  <button
+                  style={styles.quantityButton}
+                  onClick={() => handleQuantityDecrease(product._id)}
+                  disabled={(quantities[product._id] || 1) <= 1} // disable if quantity is 1
+                  >
+                   -
+                  </button>
+                  <input
+                  type="number"
+                  value={quantities[product._id] || 1}
+                  onChange={(e) => handleInputChange(e, product._id)}
+                  style={styles.quantityInput}
+                  min="1"
+                  max={product.stock}
+                 />
+                 <button
+                 style={styles.quantityButton}
+                 onClick={() => handleQuantityIncrease(product._id)}
+                 disabled={(quantities[product._id] || 1) >= product.stock} // disable if quantity at max stock
+                >
+                 +
+                </button>
+                </div>
+
+                  <button
+                  style={styles.productButton}
+                  onClick={(e) => {
+                  e.stopPropagation(); // Prevent the card onClick if any
+                  confirmAddToCart(product);
+                 }}
+                 >
+                  Add to Cart
+                </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
-      {/* Modal */}
-      {modalProduct && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', zIndex: 999
-        }}>
-          <div style={{
-            backgroundColor: '#5a3b22', padding: '20px', borderRadius: '10px',
-            width: '300px', textAlign: 'center', color: '#ffffff'
-          }}>
-            <h3>{modalProduct.name}</h3>
-            <p>Price: ₱{modalProduct.price.toFixed(2)}</p>
-            <label>
-              Size:
-              <select value={size} onChange={(e) => setSize(e.target.value)} style={{ margin: '10px' }}>
-                <option value="Small">Small</option>
-                <option value="Medium">Medium</option>
-                <option value="Large">Large</option>
-              </select>
-            </label>
-            <br />
-            <label>
-              Quantity:
-              <input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                style={{ margin: '10px', width: '60px' }}
-              />
-            </label>
-            <p style={{ color: 'yellow', fontWeight: 'bold' }}>
-            Total: ₱{calculateTotal(modalProduct.price).toFixed(2)}
-            </p>
-            <button onClick={confirmAddToCart} style={{ marginRight: '10px', cursor: 'pointer' }}>Confirm</button>
-            <button onClick={() => setModalProduct(null)} style={{ cursor: 'pointer' }}>Cancel</button>
-          </div>
-        </div>
-      )}
-
-      {/* Footer */}
       <footer style={styles.footer}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', padding: '0 20px', color: 'white' }}>
-          <div style={{ flex: '1 1 250px', margin: '10px' }}>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Customer Service</h4>
-            <p>Need help? Our team is here for you 24/7.</p>
-            <p>FAQs</p>
-            <p>Returns & Refunds</p>
-            <p>Order Tracking</p>
-          </div>
-          <div style={{ flex: '1 1 250px', margin: '10px' }}>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Contact Us</h4>
-            <p>Email: support@kapekalakal.com</p>
-            <p>Phone: +63 912 345 6789</p>
-            <p>Address: 123 Brew Street, Makati, PH</p>
-          </div>
-          <div style={{ flex: '1 1 250px', margin: '10px' }}>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>About Us</h4>
-            <p>Kape Kalakal is your go-to café for premium Filipino coffee blends. We're passionate about coffee and community.</p>
-            <p>Read Our Story</p>
-          </div>
-        </div>
-        <div style={{ marginTop: '20px' }}>
-        <p style={{ color: 'white' }}>© 2025 Kape Kalakal. All Rights Reserved.</p>
-        </div>
+        <p style={{ color: 'white' }}>Kape Kalakal &copy; 2025. All rights reserved.</p>
       </footer>
     </div>
   );

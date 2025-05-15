@@ -7,51 +7,50 @@ const Checkout = () => {
   const [orderSummary, setOrderSummary] = useState([]);
   const navigate = useNavigate();
 
-  const DELIVERY_FEE = 50.00;
+  const DELIVERY_FEE = 50.0;
 
   useEffect(() => {
-    if (orderDetails) {
+    const stored = localStorage.getItem('orderDetails');
+    if (orderDetails && orderDetails.length > 0) {
       setOrderSummary(orderDetails);
+    } else if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.length > 0) {
+          setOrderSummary(parsed);
+        }
+      } catch {
+        setOrderSummary([]);
+      }
     }
   }, [orderDetails]);
 
-  const handleRemoveFromCart = (productId) => {
-    const updatedCart = orderSummary.filter((item) => item.productId !== productId);
+  const handleRemoveFromCart = (productId, index) => {
+    const updatedCart = orderSummary.filter((item, i) => item.productId !== productId && i !== index);
     setOrderSummary(updatedCart);
     localStorage.setItem('orderDetails', JSON.stringify(updatedCart));
   };
 
   const calculateSubtotal = () => {
-    return orderSummary.reduce((acc, item) => acc + item.totalPrice, 0);
+    return orderSummary.reduce((acc, item) => acc + (item.totalPrice || 0), 0);
   };
 
   const handleCheckout = async () => {
-    // Retrieve the token from localStorage
-    const token = localStorage.getItem('authToken'); // Ensure this is the correct key
-  
-    // Debug log to check the value of token
-    console.log('Token retrieved:', token);
-  
-    if (!token) {
+    const token = localStorage.getItem('authToken');
+    const userId = localStorage.getItem('userId');
+    const email = localStorage.getItem('email') || 'unknown';
+
+    if (!token || !userId) {
       alert('You must be logged in to place an order.');
       return;
     }
-  
-    // Log the headers to verify the token
-    console.log('Headers:', {
-      'Authorization': `Bearer ${token}`, // Log the Authorization header
-    });
-  
-    // Calculate subtotal and total
+
     const subtotal = calculateSubtotal();
     const total = subtotal + DELIVERY_FEE;
-  
-    const userId = localStorage.getItem('userId') || 'guest'; // Adjust if you have auth
-    const userEmail = localStorage.getItem('email') || 'unknown';
-  
+
     const orderPayload = {
       userId,
-      email: userEmail,
+      email,
       items: orderSummary,
       subtotal,
       deliveryFee: DELIVERY_FEE,
@@ -59,33 +58,33 @@ const Checkout = () => {
       status: 'Pending',
       createdAt: new Date().toISOString(),
     };
-  
+
     try {
-      // Perform the API call to place the order
-      const response = await fetch('http://localhost:5200/api/v1/orders', {
+      const res = await fetch('http://localhost:5200/api/v1/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        credentials: 'include', // 👈 this sends cookies
+        credentials: 'include',
         body: JSON.stringify(orderPayload),
       });
-      
-  
-      if (response.ok) {
-        alert('Order placed successfully!');
+
+      if (res.ok) {
+        const result = await res.json();
+        alert(`Order #${result.orderId || 'N/A'} placed successfully!`);
         localStorage.removeItem('orderDetails');
         navigate('/menu');
       } else {
-        alert('Failed to place order');
+        const err = await res.json();
+        alert(`Failed to place order: ${err.message || 'Server error'}`);
       }
-    } catch (error) {
-      console.error('Checkout error:', error);
+    } catch (err) {
+      console.error('Checkout error:', err);
       alert('An error occurred while placing the order.');
     }
-  };  
-  
-  
+  };
+
   const handleBackToMenu = () => {
     navigate('/menu');
   };
@@ -96,17 +95,21 @@ const Checkout = () => {
   return (
     <div className="checkout-container">
       <h2 className="checkout-title">Receipt Summary</h2>
+
       {orderSummary.length > 0 ? (
         <div className="receipt-box">
           <ul className="order-list">
             {orderSummary.map((item, index) => (
-              <li key={index} className="order-item">
+              <li key={item.productId || index} className="order-item">
                 <div className="item-details">
                   <div>{item.name} ({item.size})</div>
                   <div>{item.quantity} x ₱{item.price.toFixed(2)}</div>
                   <div>= ₱{item.totalPrice.toFixed(2)}</div>
                 </div>
-                <button className="remove-button" onClick={() => handleRemoveFromCart(item.productId)}>
+                <button
+                  className="remove-button"
+                  onClick={() => handleRemoveFromCart(item.productId, index)}
+                >
                   Remove
                 </button>
               </li>
@@ -142,7 +145,7 @@ const Checkout = () => {
           padding: 20px;
           max-width: 800px;
           margin: 0 auto;
-          font-family: Arial, sans-serif;
+          font-family: 'Segoe UI', sans-serif;
         }
 
         .checkout-title {
@@ -155,7 +158,7 @@ const Checkout = () => {
           background: #fff;
           border-radius: 10px;
           padding: 20px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .order-list {
@@ -175,7 +178,6 @@ const Checkout = () => {
         .item-details {
           display: flex;
           flex-direction: column;
-          gap: 4px;
           color: #333;
         }
 

@@ -13,6 +13,7 @@ export const DRINK_SORT_BY = {
 
 export const ORDER_STATUS = {
     PENDING: 'Pending',
-    PAID: 'Paid',
+    SHIPPED: 'Shipped',
+    DELIVERED: 'Delivered',
 };
 

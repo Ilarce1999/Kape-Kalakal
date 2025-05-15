@@ -15,6 +15,7 @@ import {
   OrderHistory,
   Admin,
   SuperAdmin,
+  ViewMyOrder
 } from './pages';
 
 //import Users from './pages/admin/users';
@@ -37,6 +38,7 @@ import Login, { loader as loginLoader, action as loginAction } from './pages/log
 import { action as registerAction } from './pages/register';
 import { loader as dashboardLoader } from './pages/dashboard';
 import { loader as aboutusLoader } from './pages/aboutus';
+import { loader as viewMyOrder } from './pages/viewMyOrder';
 import { loader as menuLoader } from './pages/menu';
 import { loader as settingsLoader } from './pages/settings';
 import { loader as adminDashboardLoader } from './pages/admin';
@@ -158,6 +160,12 @@ const router = createBrowserRouter([
   {
     path: '/orderHistory',
     element: <OrderHistory />,
+    errorElement: <Error />,
+  },
+  {
+    path: '/viewMyOrder',
+    element: <ViewMyOrder />,
+    loader: viewMyOrder,
     errorElement: <Error />,
   },
   {

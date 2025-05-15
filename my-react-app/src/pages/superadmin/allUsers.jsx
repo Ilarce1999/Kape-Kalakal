@@ -99,7 +99,7 @@ const AllUsers = () => {
             </span>
           </div>
 
-          <button className="hamburger" onClick={toggleMobileMenu}>☰</button>
+         {/* } <button className="hamburger" onClick={toggleMobileMenu}>☰</button> */}
 
           <div className={`nav-items ${isMobileMenuOpen ? 'show' : ''}`} style={{ gap: '15px', display: 'flex', alignItems: 'center' }}>
             <Link to="/superadmin" style={getLinkStyle('/superadmin')}>HOME</Link>

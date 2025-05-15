@@ -34,23 +34,43 @@ const withValidationErrors = (validateValues) => {
 
 // Validation for order creation/editing
 export const validateOrder = withValidationErrors([
+  body('userId')
+    .notEmpty()
+    .withMessage('User ID is required')
+    .custom((value) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        throw new Error('Invalid userId');
+      }
+      return true;
+    }),
+
+  body('email')
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email format'),
+
   body('items')
     .isArray({ min: 1 })
     .withMessage('Items must be a non-empty array'),
 
-  body('items.*.name')
+  body('items.*.productId')
     .notEmpty()
-    .withMessage('Each item must have a name'),
+    .withMessage('Each item must have a productId')
+    .custom((value) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        throw new Error('Invalid productId');
+      }
+      return true;
+    }),
 
   body('items.*.quantity')
     .isInt({ min: 1 })
     .withMessage('Each item must have a quantity of at least 1'),
 
-  body('items.*.size')
-    .notEmpty()
-    .withMessage('Each item must have a size')
-    .isIn(['Small', 'Medium', 'Large'])
-    .withMessage('Size must be one of Small, Medium, or Large'),
+  body('items.*.totalPrice')
+    .isNumeric()
+    .withMessage('Each item must have a totalPrice'),
 
   body('subtotal')
     .isNumeric()
@@ -63,8 +83,12 @@ export const validateOrder = withValidationErrors([
   body('total')
     .isNumeric()
     .withMessage('Total must be a number'),
-]);
 
+  body('status')
+    .optional()
+    .isString()
+    .withMessage('Status must be a string'),
+]);
 
 // Validation for order ID access (GET, PATCH, DELETE)
 export const validateIdParam = withValidationErrors([
@@ -79,7 +103,7 @@ export const validateIdParam = withValidationErrors([
       throw new NotFoundError(`No order with id ${value}`);
     }
 
-    const isOwner = req.user.userId === order.orderedBy.toString();
+    const isOwner = req.user.userId === order.userId.toString();
     const isAdmin = ['admin', 'superadmin'].includes(req.user.role);
 
     if (!isOwner && !isAdmin) {

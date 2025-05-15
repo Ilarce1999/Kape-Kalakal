@@ -217,6 +217,7 @@ const AboutUs = () => {
           <div style={styles.navItems}>
             <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
             <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
+            <Link to="/viewMyOrder" style={getLinkStyle('/viewMyOrder')}>MY ORDERS</Link>
             <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
             <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
             <div style={styles.dropdown}>

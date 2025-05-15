@@ -11,12 +11,12 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import customFetch from '../../../utils/customFetch.js';
 
-// ✅ Dummy loader (required by route setup)
+// Dummy loader (required by route setup)
 export const loader = () => {
   return null;
 };
 
-// ✅ Action: Handles form submission
+// Action: Handles form submission
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
@@ -30,9 +30,9 @@ export const action = async ({ request }) => {
     const user = response.data.user;
     const token = response.data.token;
 
-    // ✅ Store user data and token in localStorage
+    // Store token and user data in localStorage
     localStorage.setItem('authToken', token);
-    localStorage.setItem('userId', user._id);      // Or whatever field your user object uses for ID
+    localStorage.setItem('userId', user._id);
     localStorage.setItem('email', user.email);
 
     toast.success('Login successful');
@@ -46,7 +46,7 @@ export const action = async ({ request }) => {
   }
 };
 
-// ✅ Login Component
+// Login Component
 const Login = () => {
   const [hover, setHover] = useState(false);
   const location = useLocation();
@@ -55,7 +55,7 @@ const Login = () => {
   const isSubmitting = navigation.state === 'submitting';
   const errors = useActionData();
 
-  // Show success toast after redirection (e.g. after register)
+  // Show toast if redirected from successful registration
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     if (query.get('success') === 'true' && !toastShown.current) {
