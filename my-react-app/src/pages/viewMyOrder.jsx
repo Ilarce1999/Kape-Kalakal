@@ -1,4 +1,3 @@
-// ViewMyOrder.jsx
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useLoaderData, redirect } from 'react-router-dom';
 import customFetch from '../../../utils/customFetch';
@@ -17,6 +16,7 @@ export const loader = async () => {
 
 const ViewMyOrder = () => {
   const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { user } = useLoaderData();
   const location = useLocation();
@@ -54,6 +54,14 @@ const ViewMyOrder = () => {
     }
   };
 
+  const openOrderModal = (order) => {
+    setSelectedOrder(order);
+  };
+
+  const closeOrderModal = () => {
+    setSelectedOrder(null);
+  };
+
   const getLinkStyle = (path) => {
     const isActive = location.pathname === path;
     return {
@@ -71,31 +79,31 @@ const ViewMyOrder = () => {
       {/* Navbar */}
       <div style={{ backgroundColor: '#5a3b22', width: '100%', height: '70px', position: 'fixed', top: 0, zIndex: 1000 }}>
         <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', fontFamily: "'Playfair Display', serif" }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img
-        src="/images/kape.jpg"
-        alt="Logo"
-        style={{
-        width: '40px',
-        height: '40px',
-        borderRadius: '50%',
-        objectFit: 'cover',
-        marginRight: '10px', // Adds horizontal space between image and text
-      }}
-     />
-      <span
-      style={{
-      color: 'white',
-      fontWeight: 'bold',
-      fontSize: '1.5rem',
-      position: 'relative',
-      top: '2px', // Slight downward adjustment
-     }}
-     >
-       Kape Kalakal
-    </span>
-  </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img
+              src="/images/kape.jpg"
+              alt="Logo"
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                marginRight: '10px',
+              }}
+            />
+            <span
+              style={{
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '1.5rem',
+                position: 'relative',
+                top: '2px',
+              }}
+            >
+              Kape Kalakal
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
             <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
             <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
             <Link to="/viewMyOrder" style={getLinkStyle('/viewMyOrder')}>MY ORDERS</Link>
@@ -103,7 +111,7 @@ const ViewMyOrder = () => {
             <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
             <div style={{ position: 'relative', cursor: 'pointer', marginTop: '6px' }} onClick={toggleDropdown}>
               <button style={{ backgroundColor: 'transparent', border: 'none', color: 'white', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span>{user?.name }</span>
+                <span>{user?.name}</span>
                 <span>▼</span>
               </button>
               <div
@@ -146,43 +154,91 @@ const ViewMyOrder = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px', fontFamily: "'Playfair Display', serif" }}>
             <thead>
               <tr>
-                <th style={headerStyle}>Item Name</th>
-             {/* }   <th style={headerStyle}>Size</th> */}
-                <th style={headerStyle}>Qty</th>
-                <th style={headerStyle}>Price</th>
-                <th style={headerStyle}>Subtotal</th>
-                <th style={headerStyle}>Delivery</th>
-                <th style={headerStyle}>Total</th>
-                <th style={headerStyle}>Status</th>
+                <th style={headerStyle}>Order ID</th>
                 <th style={headerStyle}>Date</th>
+                <th style={headerStyle}>Action</th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((order, orderIdx) => {
-                const itemCount = order.items.length;
-                return order.items.map((item, itemIdx) => (
-                  <tr key={`${orderIdx}-${itemIdx}`}>
-                    <td style={cellStyle}>{item.name}</td>
-                  {/* }  <td style={cellStyle}>{item.size}</td> */}
-                    <td style={cellStyle}>{item.quantity}</td>
-                    <td style={cellStyle}>₱{item.price.toFixed(2)}</td>
-
-                    {itemIdx === 0 && (
-                      <>
-                        <td rowSpan={itemCount} style={cellStyle}>₱{order.subtotal.toFixed(2)}</td>
-                        <td rowSpan={itemCount} style={cellStyle}>₱{order.deliveryFee.toFixed(2)}</td>
-                        <td rowSpan={itemCount} style={cellStyle}>₱{order.total.toFixed(2)}</td>
-                        <td rowSpan={itemCount} style={cellStyle}>{order.status}</td>
-                        <td rowSpan={itemCount} style={cellStyle}>{new Date(order.createdAt).toLocaleString()}</td>
-                      </>
-                    )}
-                  </tr>
-                ));
-              })}
+              {orders.map((order) => (
+                <tr key={order._id}>
+                  <td style={cellStyle}>{order._id}</td>
+                  <td style={cellStyle}>{new Date(order.createdAt).toLocaleString()}</td>
+                  <td style={cellStyle}>
+                    <button
+                      style={{
+                        padding: '5px 10px',
+                        backgroundColor: '#8c6239',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => openOrderModal(order)}
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
       </div>
+
+      {/* Modal */}
+      {selectedOrder && (
+        <div style={modalBackdropStyle} onClick={closeOrderModal}>
+          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>Order Details</h3>
+
+            <p style={{ marginBottom: '10px' }}>
+              <strong>Order ID:</strong> {selectedOrder._id}
+            </p>
+            <p style={{ marginBottom: '10px' }}>
+              <strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}
+            </p>
+
+            <p style={{ marginBottom: '10px' }}><strong>Items:</strong></p>
+            <ul style={{ marginBottom: '10px', paddingLeft: '20px' }}>
+              {selectedOrder.items.map((item, index) => (
+                <li key={index} style={{ marginBottom: '8px' }}>
+                  {item.name} — {item.quantity} × ₱{item.price.toFixed(2)}
+                </li>
+              ))}
+            </ul>
+
+            <p style={{ marginBottom: '10px' }}>
+              <strong>Subtotal:</strong> ₱{selectedOrder.subtotal.toFixed(2)}
+            </p>
+            <p style={{ marginBottom: '10px' }}>
+              <strong>Delivery Fee:</strong> ₱{selectedOrder.deliveryFee.toFixed(2)}
+            </p>
+            <p style={{ marginBottom: '10px' }}>
+              <strong>Total:</strong> ₱{selectedOrder.total.toFixed(2)}
+            </p>
+            <p style={{ marginBottom: '20px' }}>
+              <strong>Status:</strong> {selectedOrder.status}
+            </p>
+
+            <button
+              onClick={closeOrderModal}
+              style={{
+                marginTop: '10px',
+                padding: '10px 18px',
+                backgroundColor: '#5a3b22',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '1.1rem',
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -197,6 +253,33 @@ const headerStyle = {
 const cellStyle = {
   padding: '10px',
   border: '1px solid #8c6239',
+};
+
+const modalBackdropStyle = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: '100vw',
+  height: '100vh',
+  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 1001,
+};
+
+const modalContentStyle = {
+  backgroundColor: '#4b2e15',
+  color: 'white',
+  padding: '30px',
+  borderRadius: '10px',
+  width: '90%',
+  maxWidth: '600px',
+  maxHeight: '90vh',
+  overflowY: 'auto',
+  fontFamily: "'Playfair Display', serif",
+  fontSize: '1.1rem',
+  lineHeight: '1.6',
 };
 
 export default ViewMyOrder;
