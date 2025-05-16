@@ -177,7 +177,7 @@ const Orders = ({ currentUser }) => {
                     <ul style={{ paddingLeft: '20px' }}>
                       {order.items.map((item, idx) => (
                         <li key={idx}>
-                          {item.name} ({item.size}) - {item.quantity} x ₱{item.price}
+                          {item.name} - {item.quantity} x ₱{item.price}
                         </li>
                       ))}
                     </ul>
@@ -219,7 +219,7 @@ const Orders = ({ currentUser }) => {
             <p>Email: {selectedOrder.email}</p>
             <ul>
               {selectedOrder.items.map((item, idx) => (
-                <li key={idx}>{item.name} ({item.size}) - {item.quantity} x ₱{item.price}</li>
+                <li key={idx}>{item.name} - {item.quantity} x ₱{item.price}</li>
               ))}
             </ul>
             <p>Subtotal: ₱{selectedOrder.subtotal.toFixed(2)}</p>

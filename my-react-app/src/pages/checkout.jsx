@@ -26,7 +26,7 @@ const Checkout = () => {
   }, [orderDetails]);
 
   const handleRemoveFromCart = (productId, index) => {
-    const updatedCart = orderSummary.filter((item, i) => item.productId !== productId && i !== index);
+    const updatedCart = orderSummary.filter((item, i) => i !== index || item.productId !== productId);
     setOrderSummary(updatedCart);
     localStorage.setItem('orderDetails', JSON.stringify(updatedCart));
   };
@@ -37,10 +37,9 @@ const Checkout = () => {
 
   const handleCheckout = async () => {
     const token = localStorage.getItem('authToken');
-    const userId = localStorage.getItem('userId');
     const email = localStorage.getItem('email') || 'unknown';
 
-    if (!token || !userId) {
+    if (!token) {
       alert('You must be logged in to place an order.');
       return;
     }
@@ -49,14 +48,12 @@ const Checkout = () => {
     const total = subtotal + DELIVERY_FEE;
 
     const orderPayload = {
-      userId,
       email,
       items: orderSummary,
       subtotal,
       deliveryFee: DELIVERY_FEE,
       total,
       status: 'Pending',
-      createdAt: new Date().toISOString(),
     };
 
     try {
@@ -72,12 +69,12 @@ const Checkout = () => {
 
       if (res.ok) {
         const result = await res.json();
-        alert(`Order #${result.orderId || 'N/A'} placed successfully!`);
+        alert('Order placed successfully!');
         localStorage.removeItem('orderDetails');
         navigate('/menu');
       } else {
         const err = await res.json();
-        alert(`Failed to place order: ${err.message || 'Server error'}`);
+        alert(`Failed to place order: ${err.msg || 'Server error'}`);
       }
     } catch (err) {
       console.error('Checkout error:', err);
@@ -102,7 +99,7 @@ const Checkout = () => {
             {orderSummary.map((item, index) => (
               <li key={item.productId || index} className="order-item">
                 <div className="item-details">
-                  <div>{item.name} ({item.size})</div>
+                  <div>{item.name}</div>
                   <div>{item.quantity} x ₱{item.price.toFixed(2)}</div>
                   <div>= ₱{item.totalPrice.toFixed(2)}</div>
                 </div>

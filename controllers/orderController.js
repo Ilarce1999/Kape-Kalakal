@@ -18,60 +18,25 @@ export const getAllOrders = async (req, res) => {
 };
 
 export const createOrder = async (req, res) => {
-  const { items, email, subtotal, deliveryFee, total, status } = req.body;
+  const userId = req.user.userId;
 
-  if (!email || !items || items.length === 0 || !subtotal || subtotal <= 0 || !deliveryFee || deliveryFee < 0 || !total || total <= 0) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Invalid order data' });
+  const { email, items, subtotal, deliveryFee, total, status } = req.body;
+
+  if (!email || !items || !subtotal || !deliveryFee || !total) {
+    return res.status(400).json({ msg: 'Missing required fields' });
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  try {
-    // Check if products are available in stock
-    for (let item of items) {
-      const product = await ProductModel.findById(item.productId).session(session);
-      if (!product) {
-        return res.status(StatusCodes.BAD_REQUEST).json({ msg: `Product with ID ${item.productId} does not exist.` });
-      }
+  const order = await OrderModel.create({
+    userId,
+    email,
+    items,
+    subtotal,
+    deliveryFee,
+    total,
+    status: status || 'Pending',
+  });
 
-      if (product.stock < item.quantity) {
-        return res.status(StatusCodes.BAD_REQUEST).json({ msg: `Insufficient stock for product ${product.name}.` });
-      }
-
-      // Decrease stock after successful order creation
-      product.stock -= item.quantity;
-      await product.save({ session });
-    }
-
-    const userId = req.user?.userId;
-    if (!userId) {
-      return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'User ID is required.' });
-    }
-
-    const order = new OrderModel({
-      userId,
-      email,
-      items,
-      subtotal,
-      deliveryFee,
-      total,
-      status: status || 'Pending',
-    });
-
-    await order.save({ session });
-    await session.commitTransaction();
-    session.endSession();
-
-    res.status(StatusCodes.CREATED).json({ msg: 'Order created successfully', order });
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error('Error creating order:', error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: 'Error creating order.',
-      error: error.message,
-    });
-  }
+  res.status(201).json({ order });
 };
 
 export const getOrder = async (req, res) => {

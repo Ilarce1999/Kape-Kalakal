@@ -34,16 +34,6 @@ const withValidationErrors = (validateValues) => {
 
 // Validation for order creation/editing
 export const validateOrder = withValidationErrors([
-  body('userId')
-    .notEmpty()
-    .withMessage('User ID is required')
-    .custom((value) => {
-      if (!mongoose.Types.ObjectId.isValid(value)) {
-        throw new Error('Invalid userId');
-      }
-      return true;
-    }),
-
   body('email')
     .notEmpty()
     .withMessage('Email is required')

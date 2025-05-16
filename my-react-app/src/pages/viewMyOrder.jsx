@@ -18,7 +18,7 @@ export const loader = async () => {
 const ViewMyOrder = () => {
   const [orders, setOrders] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { name: userName } = useLoaderData();
+  const { user } = useLoaderData();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -71,11 +71,31 @@ const ViewMyOrder = () => {
       {/* Navbar */}
       <div style={{ backgroundColor: '#5a3b22', width: '100%', height: '70px', position: 'fixed', top: 0, zIndex: 1000 }}>
         <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', fontFamily: "'Playfair Display', serif" }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <img src="/images/kape.jpg" alt="Logo" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
-            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '1.5rem' }}>Kape Kalakal</span>
-          </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <img
+        src="/images/kape.jpg"
+        alt="Logo"
+        style={{
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        objectFit: 'cover',
+        marginRight: '10px', // Adds horizontal space between image and text
+      }}
+     />
+      <span
+      style={{
+      color: 'white',
+      fontWeight: 'bold',
+      fontSize: '1.5rem',
+      position: 'relative',
+      top: '2px', // Slight downward adjustment
+     }}
+     >
+       Kape Kalakal
+    </span>
+  </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
             <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
             <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
             <Link to="/viewMyOrder" style={getLinkStyle('/viewMyOrder')}>MY ORDERS</Link>
@@ -83,7 +103,7 @@ const ViewMyOrder = () => {
             <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
             <div style={{ position: 'relative', cursor: 'pointer', marginTop: '6px' }} onClick={toggleDropdown}>
               <button style={{ backgroundColor: 'transparent', border: 'none', color: 'white', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span>{userName || 'User'}</span>
+                <span>{user?.name }</span>
                 <span>▼</span>
               </button>
               <div
@@ -106,7 +126,6 @@ const ViewMyOrder = () => {
                     padding: '5px 10px',
                     cursor: 'pointer',
                     textAlign: 'center',
-                    borderTop: '1px solid #ccc',
                   }}
                   onClick={logoutUser}
                 >
@@ -128,7 +147,7 @@ const ViewMyOrder = () => {
             <thead>
               <tr>
                 <th style={headerStyle}>Item Name</th>
-                <th style={headerStyle}>Size</th>
+             {/* }   <th style={headerStyle}>Size</th> */}
                 <th style={headerStyle}>Qty</th>
                 <th style={headerStyle}>Price</th>
                 <th style={headerStyle}>Subtotal</th>
@@ -144,7 +163,7 @@ const ViewMyOrder = () => {
                 return order.items.map((item, itemIdx) => (
                   <tr key={`${orderIdx}-${itemIdx}`}>
                     <td style={cellStyle}>{item.name}</td>
-                    <td style={cellStyle}>{item.size}</td>
+                  {/* }  <td style={cellStyle}>{item.size}</td> */}
                     <td style={cellStyle}>{item.quantity}</td>
                     <td style={cellStyle}>₱{item.price.toFixed(2)}</td>
 
