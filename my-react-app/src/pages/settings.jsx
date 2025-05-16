@@ -123,7 +123,7 @@ const styles = {
     width: '90%',
     margin: '0 auto',
     textAlign: 'left',
-    backgroundColor: '#F5DEB3',
+    backgroundColor: '#5a3b22',
     padding: '30px',
     borderRadius: '8px',
     boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
@@ -144,7 +144,7 @@ const styles = {
   submitButton: {
     width: '100%',
     padding: '12px',
-    backgroundColor: '#8B4513',
+    backgroundColor: '#2c1b0b',
     color: 'white',
     border: 'none',
     borderRadius: '8px',
