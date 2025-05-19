@@ -62,6 +62,23 @@ const ViewMyOrder = () => {
     setSelectedOrder(null);
   };
 
+  const handlePayNow = async (order) => {
+    try {
+      const response = await customFetch.post(`/orders/${order._id}/pay`, {
+        method: order.paymentMethod, // e.g. 'PayPal' or 'GCash'
+      });
+
+      toast.success('Payment successful!');
+      setOrders((prev) =>
+        prev.map((o) => (o._id === order._id ? { ...o, paymentStatus: 'Paid' } : o))
+      );
+      closeOrderModal();
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error('Payment failed. Please try again.');
+    }
+  };
+
   const getLinkStyle = (path) => {
     const isActive = location.pathname === path;
     return {
@@ -91,17 +108,7 @@ const ViewMyOrder = () => {
                 marginRight: '10px',
               }}
             />
-            <span
-              style={{
-                color: 'white',
-                fontWeight: 'bold',
-                fontSize: '1.5rem',
-                position: 'relative',
-                top: '2px',
-              }}
-            >
-              Kape Kalakal
-            </span>
+            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '1.5rem' }}>Kape Kalakal</span>
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
             <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
@@ -114,27 +121,21 @@ const ViewMyOrder = () => {
                 <span>{user?.name}</span>
                 <span>▼</span>
               </button>
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: '0',
-                  backgroundColor: '#5a3b22',
-                  color: 'white',
-                  padding: '10px 20px',
-                  borderRadius: '5px',
-                  boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                  display: isDropdownOpen ? 'block' : 'none',
-                  zIndex: 10,
-                  minWidth: '120px',
-                }}
-              >
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: '0',
+                backgroundColor: '#5a3b22',
+                color: 'white',
+                padding: '10px 20px',
+                borderRadius: '5px',
+                boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                display: isDropdownOpen ? 'block' : 'none',
+                zIndex: 10,
+                minWidth: '120px',
+              }}>
                 <div
-                  style={{
-                    padding: '5px 10px',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                  }}
+                  style={{ padding: '5px 10px', cursor: 'pointer', textAlign: 'center' }}
                   onClick={logoutUser}
                 >
                   Logout
@@ -192,13 +193,8 @@ const ViewMyOrder = () => {
           <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>Order Details</h3>
 
-            <p style={{ marginBottom: '10px' }}>
-              <strong>Order ID:</strong> {selectedOrder._id}
-            </p>
-            <p style={{ marginBottom: '10px' }}>
-              <strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}
-            </p>
-
+            <p style={{ marginBottom: '10px' }}><strong>Order ID:</strong> {selectedOrder._id}</p>
+            <p style={{ marginBottom: '10px' }}><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
             <p style={{ marginBottom: '10px' }}><strong>Items:</strong></p>
             <ul style={{ marginBottom: '10px', paddingLeft: '20px' }}>
               {selectedOrder.items.map((item, index) => (
@@ -207,19 +203,31 @@ const ViewMyOrder = () => {
                 </li>
               ))}
             </ul>
+            <p style={{ marginBottom: '10px' }}><strong>Subtotal:</strong> ₱{selectedOrder.subtotal.toFixed(2)}</p>
+            <p style={{ marginBottom: '10px' }}><strong>Delivery Fee:</strong> ₱{selectedOrder.deliveryFee.toFixed(2)}</p>
+            <p style={{ marginBottom: '10px' }}><strong>Total:</strong> ₱{selectedOrder.total.toFixed(2)}</p>
+            <p style={{ marginBottom: '10px' }}><strong>Payment Method:</strong> {selectedOrder.paymentMethod}</p>
+            <p style={{ marginBottom: '10px' }}><strong>Address:</strong> {selectedOrder.address}</p>
+            <p style={{ marginBottom: '20px' }}><strong>Payment Status:</strong> {selectedOrder.paymentStatus || 'Unpaid'}</p>
+            <p style={{ marginBottom: '20px' }}><strong>Status:</strong> {selectedOrder.deliveryStatus}</p>
 
-            <p style={{ marginBottom: '10px' }}>
-              <strong>Subtotal:</strong> ₱{selectedOrder.subtotal.toFixed(2)}
-            </p>
-            <p style={{ marginBottom: '10px' }}>
-              <strong>Delivery Fee:</strong> ₱{selectedOrder.deliveryFee.toFixed(2)}
-            </p>
-            <p style={{ marginBottom: '10px' }}>
-              <strong>Total:</strong> ₱{selectedOrder.total.toFixed(2)}
-            </p>
-            <p style={{ marginBottom: '20px' }}>
-              <strong>Status:</strong> {selectedOrder.status}
-            </p>
+            {selectedOrder.paymentStatus !== 'Paid' && (
+              <button
+                onClick={() => handlePayNow(selectedOrder)}
+                style={{
+                  marginTop: '10px',
+                  padding: '10px 18px',
+                  backgroundColor: '#228B22',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '1.1rem',
+                }}
+              >
+                Pay Now
+              </button>
+            )}
 
             <button
               onClick={closeOrderModal}

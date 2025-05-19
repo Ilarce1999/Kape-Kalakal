@@ -8,7 +8,7 @@ import {
   UnauthorizedError,
 } from '../errors/customErrors.js';
 
-// Common error handler
+// Common error handler middleware generator
 const withValidationErrors = (validateValues) => {
   return [
     ...validateValues,
@@ -16,23 +16,22 @@ const withValidationErrors = (validateValues) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         const errorMessages = errors.array().map((err) => err.msg);
-
         const firstError = errorMessages[0].toLowerCase();
 
         if (firstError.includes('no order')) {
-          throw new NotFoundError(errorMessages.join(', '));
+          return next(new NotFoundError(errorMessages.join(', ')));
         }
         if (firstError.includes('not authorized')) {
-          throw new UnauthorizedError('Not authorized to access this route');
+          return next(new UnauthorizedError('Not authorized to access this route'));
         }
-        throw new BadRequestError(errorMessages.join(', '));
+        return next(new BadRequestError(errorMessages.join(', ')));
       }
       next();
     },
   ];
 };
 
-// Validation for order creation/editing
+// ✅ Validation for order creation/editing
 export const validateOrder = withValidationErrors([
   body('email')
     .notEmpty()
@@ -54,9 +53,17 @@ export const validateOrder = withValidationErrors([
       return true;
     }),
 
+  body('items.*.name')
+    .notEmpty()
+    .withMessage('Each item must have a name'),
+
   body('items.*.quantity')
     .isInt({ min: 1 })
     .withMessage('Each item must have a quantity of at least 1'),
+
+  body('items.*.price')
+    .isNumeric()
+    .withMessage('Each item must have a price'),
 
   body('items.*.totalPrice')
     .isNumeric()
@@ -74,13 +81,49 @@ export const validateOrder = withValidationErrors([
     .isNumeric()
     .withMessage('Total must be a number'),
 
-  body('status')
+  body('deliveryStatus')
     .optional()
+    .isIn(['Pending', 'Processing', 'Delivered', 'Cancelled'])
+    .withMessage('Invalid deliveryStatus'),
+
+  body('paymentStatus')
+    .optional()
+    .isIn(['Paid', 'Unpaid'])
+    .withMessage('Invalid paymentStatus'),
+
+  body('paymentMethod')
+    .notEmpty()
+    .withMessage('Payment method is required')
+    .custom((value) => {
+      const allowedMethods = ['paypal', 'gcash', 'cod'];
+      if (!allowedMethods.includes(value.toLowerCase())) {
+        throw new Error('Invalid payment method');
+      }
+      return true;
+    }),
+
+  body('address')
+    .notEmpty()
+    .withMessage('Address is required')
     .isString()
-    .withMessage('Status must be a string'),
+    .withMessage('Address must be a string'),
 ]);
 
-// Validation for order ID access (GET, PATCH, DELETE)
+// ✅ NEW: Validation for PATCH /orders/:id/status
+export const validateOrderStatusUpdate = withValidationErrors([
+  body('deliveryStatus')
+    .optional()
+    .isIn(['Pending', 'Processing', 'Delivered', 'Cancelled'])
+    .withMessage('Invalid deliveryStatus'),
+
+  body('paymentStatus')
+    .optional()
+    .isIn(['Paid', 'Unpaid'])
+    .withMessage('Invalid paymentStatus'),
+]);
+
+
+// ✅ Validation for order ID (GET, PATCH, DELETE)
 export const validateIdParam = withValidationErrors([
   param('id').custom(async (value, { req }) => {
     const isValidId = mongoose.Types.ObjectId.isValid(value);
@@ -102,11 +145,9 @@ export const validateIdParam = withValidationErrors([
   }),
 ]);
 
-// Validation for registration
+// ✅ Validation for user registration
 export const validateRegisterInput = withValidationErrors([
-  body('name')
-    .notEmpty()
-    .withMessage('Name is required'),
+  body('name').notEmpty().withMessage('Name is required'),
 
   body('email')
     .notEmpty()
@@ -126,12 +167,10 @@ export const validateRegisterInput = withValidationErrors([
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters long'),
 
-  body('location')
-    .notEmpty()
-    .withMessage('Location is required'),
+  body('location').notEmpty().withMessage('Location is required'),
 ]);
 
-// Validation for login
+// ✅ Validation for login
 export const validateLoginInput = withValidationErrors([
   body('email')
     .notEmpty()
@@ -139,16 +178,12 @@ export const validateLoginInput = withValidationErrors([
     .isEmail()
     .withMessage('Invalid email format'),
 
-  body('password')
-    .notEmpty()
-    .withMessage('Password is required'),
+  body('password').notEmpty().withMessage('Password is required'),
 ]);
 
-// Validation for updating user
+// ✅ Validation for updating user
 export const validateUpdateUserInput = withValidationErrors([
-  body('name')
-    .notEmpty()
-    .withMessage('Name is required'),
+  body('name').notEmpty().withMessage('Name is required'),
 
   body('email')
     .notEmpty()
@@ -169,7 +204,5 @@ export const validateUpdateUserInput = withValidationErrors([
       }
     }),
 
-  body('location')
-    .notEmpty()
-    .withMessage('Location is required'),
+  body('location').notEmpty().withMessage('Location is required'),
 ]);

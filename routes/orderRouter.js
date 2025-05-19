@@ -5,12 +5,14 @@ import {
   getOrder,
   editOrder,
   deleteOrder,
-  getMyOrders // ✅ Import new controller
+  updateOrderStatus,
+  getMyOrders,
 } from '../controllers/orderController.js';
 
 import {
   validateOrder,
-  validateIdParam
+  validateIdParam,
+  validateOrderStatusUpdate,
 } from '../middleware/validationMiddleware.js';
 
 import { authenticateUser } from '../middleware/authMiddleware.js';
@@ -18,20 +20,29 @@ import { checkRole } from '../middleware/checkRoleMiddleware.js';
 
 const router = Router();
 
-// ✅ All routes below require login
+// All routes below require authentication
 router.use(authenticateUser);
 
-// ✅ New route: fetch orders of the logged-in user
+// Route: fetch orders of the logged-in user
 router.get('/my-orders', getMyOrders);
 
-// ✅ Only admins can get all orders
-router.route('/')
-  .get(checkRole(['admin', 'superadmin']), getAllOrders)
-  .post(validateOrder, createOrder);
+// Route: get all orders (admin/superadmin only)
+router.get('/', checkRole(['admin', 'superadmin']), getAllOrders);
 
-router.route('/:id')
+// Route: create a new order (only users with role "user")
+router.post('/', checkRole(['user']), validateOrder, createOrder);
+
+// Route: update only delivery/payment status (admin and superadmin only)
+router.patch('/:id/status', validateIdParam, validateOrderStatusUpdate, updateOrderStatus);
+
+
+// Routes for specific order by ID
+router
+  .route('/:id')
+  // Validate ID param before accessing order
   .get(validateIdParam, getOrder)
-  .patch(validateOrder, validateIdParam, editOrder)
+  // For PATCH, validate ID param first, then validate order body
+  .patch(validateIdParam, validateOrder, editOrder)
   .delete(validateIdParam, deleteOrder);
 
 export default router;

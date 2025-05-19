@@ -18,6 +18,7 @@ import orderRouter from './routes/orderRouter.js';
 import authRouter from './routes/authRouter.js';
 import userRouter from './routes/userRouter.js';
 import productRouter from './routes/productRouter.js';
+import paymentRouter from './routes/paymentRouter.js';
 
 // Middleware
 import errorHandlerMiddleware from './middleware/errorHandlerMiddleware.js';
@@ -51,11 +52,13 @@ app.get('/api/v1/test', (req, res) => res.json({ msg: 'test route' }));
 
 // ✅ Protected Routes
 app.use('/api/v1/orders', authenticateUser, orderRouter);
+
 app.use('/api/v1/users', authenticateUser, userRouter);
 
 // ✅ Public Routes
 app.use('/api/v1/auth', authRouter);
 app.use('/api/products', productRouter);
+app.use('/api/v1/payments', paymentRouter);
 
 // 404 handler
 app.use('*', (req, res) => {

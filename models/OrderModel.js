@@ -6,10 +6,23 @@ const OrderItemSchema = new mongoose.Schema({
     required: true,
     ref: 'Product',
   },
-  name: String,
-  quantity: Number,
-  price: Number,
-  totalPrice: Number,
+  name: {
+    type: String,
+    required: true,
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  totalPrice: {
+    type: Number,
+    required: true,
+  },
 });
 
 const OrderSchema = new mongoose.Schema(
@@ -23,7 +36,10 @@ const OrderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    items: [OrderItemSchema],
+    items: {
+      type: [OrderItemSchema],
+      required: true,
+    },
     subtotal: {
       type: Number,
       required: true,
@@ -36,10 +52,26 @@ const OrderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    status: {
+    deliveryStatus: {
       type: String,
       enum: ['Pending', 'Processing', 'Delivered', 'Cancelled'],
       default: 'Pending',
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['Paid', 'Unpaid'],
+      default: 'Unpaid',
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['PayPal', 'GCash', 'COD'],
+      required: true,
+      default: 'COD',
+    },
+    address: {
+      type: String,
+      required: true,
+      trim: true,
     },
   },
   { timestamps: true }
