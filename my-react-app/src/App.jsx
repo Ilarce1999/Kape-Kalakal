@@ -15,7 +15,8 @@ import {
   OrderHistory,
   Admin,
   SuperAdmin,
-  ViewMyOrder
+  ViewMyOrder,
+  Profile,
 } from './pages';
 
 //import Users from './pages/admin/users';
@@ -139,6 +140,12 @@ const router = createBrowserRouter([
     path: '/dashboard',
     element: <Dashboard />,
     loader: dashboardLoader,
+    errorElement: <Error />,
+  },
+  {
+    path: '/profile',
+    element: <Profile />,
+    //loader: dashboardLoader,
     errorElement: <Error />,
   },
   {

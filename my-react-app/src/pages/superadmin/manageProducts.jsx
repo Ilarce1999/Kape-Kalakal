@@ -267,6 +267,7 @@ const ManageProducts = () => {
     // Navigate to update page with product data
     navigate(`/superadmin/updateProduct/${product._id}`, { state: { product } });
   };
+  
 
   const handleDelete = async (id) => {
     const confirmed = window.confirm('Are you sure you want to delete this product?');

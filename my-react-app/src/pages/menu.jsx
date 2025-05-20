@@ -70,8 +70,11 @@ const Menu = ({ logoutUser }) => {
     setModalProduct(product);
     setStockError(''); // Reset stock error message
   };
-
-  const confirmAddToCart = async (product) => {
+  
+  const confirmAddToCart = async () => {
+    if (!modalProduct) return; // Safety check
+  
+    const product = modalProduct;
     const quantity = quantities[product._id] || 1;
   
     if (product.stock < quantity) {
@@ -87,6 +90,7 @@ const Menu = ({ logoutUser }) => {
       totalPrice: product.price * quantity,
     };
   
+    // Check if product already in cart
     const existingOrder = orderDetails.find(
       (item) => item.productId === product._id
     );
@@ -107,16 +111,19 @@ const Menu = ({ logoutUser }) => {
     }
   
     try {
+      // Call backend to decrease stock
       await axios.patch(`/api/products/${product._id}/decrease-stock`, { quantity });
+  
       setOrderDetails(updatedOrders);
       localStorage.setItem('orderDetails', JSON.stringify(updatedOrders));
       setStockError('');
-      // Optionally reset quantity for this product to 1
       setQuantities((prev) => ({ ...prev, [product._id]: 1 }));
+      setModalProduct(null); // Close modal after adding
     } catch (error) {
       setStockError('Failed to update stock');
     }
   };
+  
 
   const logoutHandler = () => {
     localStorage.removeItem('user');
@@ -130,14 +137,14 @@ const Menu = ({ logoutUser }) => {
       const currentQuantity = prev[productId] || 1;
       // Get product stock by productId dynamically
       const productStock = products.find(p => p._id === productId)?.stock || 1;
-  
+
       if (currentQuantity < productStock) {
         return { ...prev, [productId]: currentQuantity + 1 };
       }
       return prev;
     });
   };
-  
+
   const handleQuantityDecrease = (productId) => {
     setQuantities((prev) => {
       const currentQuantity = prev[productId] || 1;
@@ -147,10 +154,10 @@ const Menu = ({ logoutUser }) => {
       return prev;
     });
   };
-  
+
   const handleInputChange = (e, productId) => {
     const inputValue = e.target.value;
-  
+
     if (!inputValue || isNaN(inputValue)) {
       setQuantities((prev) => ({
         ...prev,
@@ -158,16 +165,16 @@ const Menu = ({ logoutUser }) => {
       }));
       return;
     }
-  
+
     const productStock = products.find(p => p._id === productId)?.stock || 1;
     const value = Math.max(1, Math.min(Number(inputValue), productStock));
-  
+
     setQuantities((prev) => ({
       ...prev,
       [productId]: value,
     }));
   };
-  
+
   const styles = {
     fontFamily: "'Playfair Display', serif",
     color: 'white',
@@ -286,7 +293,18 @@ const Menu = ({ logoutUser }) => {
     productPrice: {
       fontSize: '1.2rem',
       fontWeight: 'bold',
+      color: '#795C34',
+    },
+    stock: {
+      fontSize: '1.2rem',
+      fontWeight: 'bold',
       color: '#2c1b0b',
+    },
+    stockPriceContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: '8px', 
     },
     quantityInput: {
       width: '60px',
@@ -366,6 +384,12 @@ const Menu = ({ logoutUser }) => {
               >
                 <div
                   style={styles.dropdownItem}
+                  onClick={() => navigate('/profile')}
+                >
+                  Profile
+                </div>
+                <div
+                  style={styles.dropdownItem}
                   onClick={() => logoutHandler()}
                 >
                   Logout
@@ -390,7 +414,7 @@ const Menu = ({ logoutUser }) => {
             fontSize: '1rem',
           }}
         />
-        
+
         {stockError && <div style={{ color: 'red', marginBottom: '20px' }}>{stockError}</div>}
 
         <div
@@ -419,43 +443,45 @@ const Menu = ({ logoutUser }) => {
                 <div style={styles.productDetails}>
                   <h3 style={styles.productName}>{product.name}</h3>
                   <p style={styles.productDescription}>{product.description}</p>
-            
-                  <div style={styles.productPrice}>₱{product.price}</div>
+                  <div style={styles.stockPriceContainer}>
+                    <p style={styles.stock}>Stock: {product.stock}</p>
+                    <div style={styles.productPrice}>₱{product.price}</div>
+                  </div>
 
                   <div style={styles.quantityControls}>
-                  <button
-                  style={styles.quantityButton}
-                  onClick={() => handleQuantityDecrease(product._id)}
-                  disabled={(quantities[product._id] || 1) <= 1} // disable if quantity is 1
-                  >
-                   -
-                  </button>
-                  <input
-                  type="number"
-                  value={quantities[product._id] || 1}
-                  onChange={(e) => handleInputChange(e, product._id)}
-                  style={styles.quantityInput}
-                  min="1"
-                  max={product.stock}
-                 />
-                 <button
-                 style={styles.quantityButton}
-                 onClick={() => handleQuantityIncrease(product._id)}
-                 disabled={(quantities[product._id] || 1) >= product.stock} // disable if quantity at max stock
-                >
-                 +
-                </button>
-                </div>
+                    <button
+                      style={styles.quantityButton}
+                      onClick={() => handleQuantityDecrease(product._id)}
+                      disabled={(quantities[product._id] || 1) <= 1} // disable if quantity is 1
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={quantities[product._id] || 1}
+                      onChange={(e) => handleInputChange(e, product._id)}
+                      style={styles.quantityInput}
+                      min="1"
+                      max={product.stock}
+                    />
+                    <button
+                      style={styles.quantityButton}
+                      onClick={() => handleQuantityIncrease(product._id)}
+                      disabled={(quantities[product._id] || 1) >= product.stock} // disable if quantity at max stock
+                    >
+                      +
+                    </button>
+                  </div>
 
                   <button
-                  style={styles.productButton}
-                  onClick={(e) => {
-                  e.stopPropagation(); // Prevent the card onClick if any
-                  confirmAddToCart(product);
-                 }}
-                 >
-                  Add to Cart
-                </button>
+                    style={styles.productButton}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent the card onClick if any
+                      confirmAddToCart(product);
+                    }}
+                  >
+                    Add to Cart
+                  </button>
                 </div>
               </div>
             ))

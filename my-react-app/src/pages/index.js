@@ -5,6 +5,7 @@ export { default as Login } from './login';
 export { default as Register } from './register';
 export { default as AboutUs } from './aboutus';
 export { default as Settings } from './settings';
+export { default as Profile } from './profile';
 export { default as Error } from './error';
 export { default as Checkout } from './checkout';
 export { default as Payment } from './payment';

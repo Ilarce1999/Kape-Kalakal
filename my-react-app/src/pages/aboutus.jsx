@@ -226,7 +226,18 @@ const AboutUs = () => {
                 <span style={{ fontSize: '18px' }}>▼</span>
               </button>
               <div style={styles.dropdownMenu}>
-                <div style={styles.dropdownItem} onClick={logoutUser}>Logout</div>
+                <div
+                  style={styles.dropdownItem}
+                  onClick={() => navigate('/profile')}
+                >
+                  Profile
+                </div>
+                <div
+                  style={styles.dropdownItem}
+                  onClick={logoutUser}
+                >
+                  Logout
+                </div>
               </div>
             </div>
           </div>

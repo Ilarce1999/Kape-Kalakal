@@ -155,7 +155,7 @@ const styles = {
     padding: '5px 10px',
     cursor: 'pointer',
     transition: 'background-color 0.3s ease',
-    color:'white',
+    color: 'white',
   },
   dropdownShow: {
     display: 'block',
@@ -344,8 +344,21 @@ const Dashboard = () => {
                     ...(isDropdownOpen ? styles.dropdownShow : {}),
                   }}
                 >
-                  <div style={styles.dropdownItem} onClick={logoutUser}>
-                    Logout
+                  <div
+                    style={{
+                      ...styles.dropdownMenu,
+                      ...(isDropdownOpen ? styles.dropdownShow : {}),
+                    }}
+                  >
+                    <div
+                      style={styles.dropdownItem}
+                      onClick={() => navigate('/profile')}
+                    >
+                      Profile
+                    </div>
+                    <div style={styles.dropdownItem} onClick={logoutUser}>
+                      Logout
+                    </div>
                   </div>
                 </div>
               </div>

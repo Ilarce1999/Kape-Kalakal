@@ -136,6 +136,12 @@ const ViewMyOrder = () => {
               }}>
                 <div
                   style={{ padding: '5px 10px', cursor: 'pointer', textAlign: 'center' }}
+                  onClick={() => navigate('/profile')}
+                >
+                  Profile
+                </div>
+                <div
+                  style={{ padding: '5px 10px', cursor: 'pointer', textAlign: 'center' }}
                   onClick={logoutUser}
                 >
                   Logout
