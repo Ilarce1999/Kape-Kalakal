@@ -330,7 +330,7 @@ const Checkout = () => {
           margin-top: 15px;
           width: 100%;
           padding: 10px;
-          background-color: #2980b9;
+          background-color: #696969;
           color: white;
           border: none;
           border-radius: 5px;
@@ -338,12 +338,12 @@ const Checkout = () => {
           cursor: pointer;
         }
         .back-button:hover {
-          background-color: #1f5f8b;
+          background-color: #808080;
         }
         .empty-cart {
           text-align: center;
           font-size: 18px;
-          color: #555;
+          color: #000000;
           margin: 20px 0;
         }
       `}</style>

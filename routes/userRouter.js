@@ -32,7 +32,7 @@ router.patch('/update-user', validateUpdateUserInput, updateUser);
 router.get('/users', authorizePermissions('superadmin'), getAllUsers);  // List all users
 router.get('/users/:id', authorizePermissions('superadmin'), getUserById);  // Get user by ID
 router.post('/users', authorizePermissions('superadmin'), createUser);  // Create a new user
-router.patch('/users/:id', authorizePermissions('superadmin'), updateUserById);  // Update user by ID
+router.patch('/users/:id', authorizePermissions('user', 'superadmin'), updateUserById);  // Update user by ID
 router.delete('/users/:id', authorizePermissions('superadmin'), deleteUserById);  // Hard delete user by ID
 
 export default router;
