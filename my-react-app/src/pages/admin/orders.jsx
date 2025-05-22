@@ -22,6 +22,12 @@ const Orders = ({ currentUser }) => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const [filters, setFilters] = useState({
+    email: '',
+    deliveryStatus: '',
+    paymentStatus: '',
+    date: '',
+  });
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -70,6 +76,25 @@ const Orders = ({ currentUser }) => {
     setSelectedOrder(null);
   };
 
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const filteredOrders = orders.filter((order) => {
+    const emailMatch = order.email.toLowerCase().includes(filters.email.toLowerCase());
+    const deliveryMatch = order.deliveryStatus.toLowerCase().includes(filters.deliveryStatus.toLowerCase());
+    const paymentMatch = order.paymentStatus.toLowerCase().includes(filters.paymentStatus.toLowerCase());
+
+    const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
+    const dateMatch = orderDate.includes(filters.date);
+
+    return emailMatch && deliveryMatch && paymentMatch && dateMatch;
+  });
+
   // PATCH to update deliveryStatus or paymentStatus
   const updateOrderStatus = async (field, value) => {
     try {
@@ -79,7 +104,7 @@ const Orders = ({ currentUser }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [field]: value }),
       });
-  
+
       if (res.ok) {
         const updatedOrder = await res.json(); // parse updated order from backend
         setSelectedOrder(updatedOrder);
@@ -98,7 +123,7 @@ const Orders = ({ currentUser }) => {
       alert('Error updating status.');
     }
   };
-  
+
 
   return (
     <div
@@ -234,9 +259,93 @@ const Orders = ({ currentUser }) => {
                 <th style={headerStyle}>Placed At</th>
                 <th style={headerStyle}>Actions</th>
               </tr>
+              <tr style={{ backgroundColor: '#fff8e1' }}>
+                <th>
+                  <input
+                    type="text"
+                    name="email"
+                    value={filters.email}
+                    onChange={handleFilterChange}
+                    placeholder="Search email"
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      fontSize: '13px',
+                      border: '1px solid #ccc',
+                      borderRadius: '5px',
+                      backgroundColor: '#fffdf4',
+                      fontFamily: "'Playfair Display', serif",
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th>
+                  <input
+                    type="text"
+                    name="deliveryStatus"
+                    value={filters.deliveryStatus}
+                    onChange={handleFilterChange}
+                    placeholder="Delivery status"
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      fontSize: '13px',
+                      border: '1px solid #ccc',
+                      borderRadius: '5px',
+                      backgroundColor: '#fffdf4',
+                      fontFamily: "'Playfair Display', serif",
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </th>
+                <th>
+                  <input
+                    type="text"
+                    name="paymentStatus"
+                    value={filters.paymentStatus}
+                    onChange={handleFilterChange}
+                    placeholder="Payment status"
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      fontSize: '13px',
+                      border: '1px solid #ccc',
+                      borderRadius: '5px',
+                      backgroundColor: '#fffdf4',
+                      fontFamily: "'Playfair Display', serif",
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </th>
+                <th></th>
+                <th>
+                  <input
+                    type="date"
+                    name="date"
+                    value={filters.date}
+                    onChange={handleFilterChange}
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      fontSize: '13px',
+                      border: '1px solid #ccc',
+                      borderRadius: '5px',
+                      backgroundColor: '#fffdf4',
+                      fontFamily: "'Playfair Display', serif",
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </th>
+                <th></th>
+              </tr>
             </thead>
+
             <tbody>
-              {orders.map((order, idx) => (
+              {filteredOrders.map((order, idx) => (
                 <tr
                   key={order._id}
                   style={{

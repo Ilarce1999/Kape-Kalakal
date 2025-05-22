@@ -196,8 +196,13 @@ const Settings = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useLoaderData();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+
+  // States for passwords & validation errors
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState({});
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -212,9 +217,49 @@ const Settings = () => {
     };
   };
 
-  const handleFormSubmit = (e) => {
+  // Form validation and submit handler
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    alert('Settings updated!');
+    setErrors({});
+
+    // Basic frontend validation
+    let validationErrors = {};
+    if (!currentPassword) validationErrors.currentPassword = 'Please enter your current password.';
+    if (!newPassword) validationErrors.newPassword = 'Please enter your new password.';
+    if (!confirmPassword) validationErrors.confirmPassword = 'Please confirm your new password.';
+    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+      validationErrors.confirmPassword = 'New passwords do not match.';
+    }
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    // Verify current password with backend
+    try {
+      // Example: backend endpoint to verify password
+      await customFetch.post('/users/verify-password', {
+        email: user.email,
+        password: currentPassword,
+      });
+
+      // If verification passes, update password API call
+      await customFetch.put('/users/update-password', {
+        email: user.email,
+        newPassword,
+      });
+
+      toast.success('Password updated successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        setErrors({ currentPassword: 'Current password is incorrect.' });
+      } else {
+        toast.error('An error occurred. Please try again.');
+      }
+    }
   };
 
   const logoutUser = async () => {
@@ -262,31 +307,8 @@ const Settings = () => {
 
       {/* Settings Form */}
       <div style={styles.pageContent}>
-        <h2>Settings</h2>
-        <p>Update your profile information below:</p>
-        <form style={styles.form} onSubmit={handleFormSubmit}>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            style={styles.inputField}
-          />
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your new password"
-            style={styles.inputField}
-          />
-          <button type="submit" style={styles.submitButton}>Save Changes</button>
-        </form>
+
+
       </div>
 
       {/* Footer */}

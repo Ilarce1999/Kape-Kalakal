@@ -1,8 +1,9 @@
-import { Router } from 'express';  // <-- Import Router
+import { Router } from 'express';
 import {
   getAppStats,
   getCurrentUser,
   updateUser,
+  updatePassword,
   getSuperAdminData,
   getAllUsers,
   getUserById,
@@ -12,27 +13,25 @@ import {
 } from '../controllers/userController.js';
 
 import { validateUpdateUserInput } from '../middleware/validationMiddleware.js';
-import { authorizePermissions } from '../middleware/authMiddleware.js';
+import {
+  authorizePermissions,
+  authenticateUser,
+} from '../middleware/authMiddleware.js';
 
-const router = Router();  // <-- Define the router
+const router = Router();
 
-// Only superadmin can access this
-router.get('/superadmin/data', authorizePermissions('superadmin'), getSuperAdminData);
+router.get('/superadmin/data', authenticateUser, authorizePermissions('superadmin'), getSuperAdminData);
+router.get('/admin/app-stats', authenticateUser, authorizePermissions('admin', 'superadmin'), getAppStats);
+router.get('/current-user', authenticateUser, getCurrentUser);
+router.patch('/update-user', authenticateUser, validateUpdateUserInput, updateUser);
 
-// Admin and superadmin can view stats
-router.get('/admin/app-stats', authorizePermissions('admin', 'superadmin'), getAppStats);
+// ✅ Password update route
+router.patch('/update-password', authenticateUser, updatePassword);
 
-// All authenticated users (even basic ones) can do this
-router.get('/current-user', getCurrentUser);
-
-// Update user information
-router.patch('/update-user', validateUpdateUserInput, updateUser);
-
-// Super admin can manage all users
-router.get('/users', authorizePermissions('superadmin'), getAllUsers);  // List all users
-router.get('/users/:id', authorizePermissions('superadmin'), getUserById);  // Get user by ID
-router.post('/users', authorizePermissions('superadmin'), createUser);  // Create a new user
-router.patch('/users/:id', authorizePermissions('user', 'superadmin'), updateUserById);  // Update user by ID
-router.delete('/users/:id', authorizePermissions('superadmin'), deleteUserById);  // Hard delete user by ID
+router.get('/users', authenticateUser, authorizePermissions('superadmin'), getAllUsers);
+router.get('/users/:id', authenticateUser, authorizePermissions('superadmin'), getUserById);
+router.post('/users', authenticateUser, authorizePermissions('superadmin'), createUser);
+router.patch('/users/:id', authenticateUser, authorizePermissions('user', 'superadmin'), updateUserById);
+router.delete('/users/:id', authenticateUser, authorizePermissions('superadmin'), deleteUserById);
 
 export default router;

@@ -23,6 +23,7 @@ const AllUsers = () => {
   const [users, setUsers] = useState(initialUsers);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -65,6 +66,32 @@ const AllUsers = () => {
     }
   };
 
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedUsers = React.useMemo(() => {
+    if (!sortConfig.key) return users;
+
+    const sorted = [...users].sort((a, b) => {
+      let aField = a[sortConfig.key];
+      let bField = b[sortConfig.key];
+
+      if (typeof aField === 'string') aField = aField.toLowerCase();
+      if (typeof bField === 'string') bField = bField.toLowerCase();
+
+      if (aField < bField) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aField > bField) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  }, [users, sortConfig]);
+
   return (
     <div style={{ paddingTop: '120px', backgroundColor: '#2c1b0b', minHeight: '100vh', fontFamily: "'Playfair Display', serif" }}>
 
@@ -99,7 +126,7 @@ const AllUsers = () => {
             </span>
           </div>
 
-         {/* } <button className="hamburger" onClick={toggleMobileMenu}>☰</button> */}
+          {/* <button className="hamburger" onClick={toggleMobileMenu}>☰</button> */}
 
           <div className={`nav-items ${isMobileMenuOpen ? 'show' : ''}`} style={{ gap: '15px', display: 'flex', alignItems: 'center' }}>
             <Link to="/superadmin" style={getLinkStyle('/superadmin')}>HOME</Link>
@@ -173,15 +200,29 @@ const AllUsers = () => {
         }}>
           <thead>
             <tr>
-              <th style={thStyle}>Name</th>
+              <th
+                style={thStyle}
+                onClick={() => requestSort('name')}
+                role="button"
+                tabIndex={0}
+              >
+                Name {sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : null}
+              </th>
               <th style={thStyle}>Email</th>
               <th style={thStyle}>Location</th>
-              <th style={thStyle}>Role</th>
+              <th
+                style={thStyle}
+                onClick={() => requestSort('role')}
+                role="button"
+                tabIndex={0}
+              >
+                Role {sortConfig.key === 'role' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : null}
+              </th>
               <th style={thStyle}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
+            {sortedUsers.map(user => (
               <tr key={user._id}>
                 <td style={tdStyle}>{user.name}</td>
                 <td style={tdStyle}>{user.email}</td>
@@ -206,39 +247,59 @@ const AllUsers = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Footer */}
+      <footer style={{
+        backgroundColor: '#5a3b22',
+        color: 'white',
+        textAlign: 'center',
+        padding: '15px 0',
+        position: 'fixed',
+        width: '100%',
+        bottom: 0,
+        fontFamily: "'Playfair Display', serif"
+      }}>
+        &copy; 2025 Kape Kalakal - All rights reserved
+      </footer>
     </div>
   );
 };
 
+// Styles
 const thStyle = {
-  padding: '12px',
-  border: '1px solid #ddd',
-  backgroundColor: '#444',
-  color: '#fff'
+  borderBottom: '2px solid #5a3b22',
+  padding: '12px 15px',
+  cursor: 'pointer',
+  fontWeight: 'bold',
+  fontSize: '1.1rem',
+  backgroundColor: '#f9f4f1',
+  textAlign: 'left',
 };
 
 const tdStyle = {
-  padding: '10px',
-  border: '1px solid #ddd'
+  padding: '10px 15px',
+  borderBottom: '1px solid #ddd',
 };
 
 const editButtonStyle = {
-  marginRight: '10px',
-  padding: '5px 10px',
-  backgroundColor: '#2196F3',
-  color: 'white',
+  backgroundColor: '#f7b733',
   border: 'none',
+  color: '#371D10',
+  fontWeight: 'bold',
+  cursor: 'pointer',
+  marginRight: '10px',
+  padding: '6px 12px',
   borderRadius: '5px',
-  cursor: 'pointer'
 };
 
 const deleteButtonStyle = {
-  padding: '5px 10px',
-  backgroundColor: '#f44336',
-  color: 'white',
+  backgroundColor: '#ff4d4d',
   border: 'none',
+  color: 'white',
+  fontWeight: 'bold',
+  cursor: 'pointer',
+  padding: '6px 12px',
   borderRadius: '5px',
-  cursor: 'pointer'
 };
 
 export default AllUsers;

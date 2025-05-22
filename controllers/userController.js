@@ -38,6 +38,48 @@ export const updateUser = async (req, res) => {
   }
 };
 
+
+const hashPassword = async (password) => {
+  const salt = await bcrypt.genSalt(10);
+  const hashed = await bcrypt.hash(password, salt);
+  return hashed;
+};
+
+export const updatePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Both old and new passwords are required' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'New password must be at least 6 characters long' });
+  }
+
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json({ msg: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({ msg: 'Old password is incorrect' });
+    }
+
+    // Hash the new password before saving
+    user.password = await hashPassword(newPassword);
+    await user.save();
+
+    res.status(StatusCodes.OK).json({ msg: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Something went wrong. Try again.' });
+  }
+};
+
+
+
 // Super Admin Data Access
 export const getSuperAdminData = async (req, res) => {
   try {
