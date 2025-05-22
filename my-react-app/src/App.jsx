@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
 
-// Pages (excluding Login from this grouped import to avoid duplication)
+// Pages
 import {
   Landing,
   Menu,
@@ -19,7 +19,6 @@ import {
   Profile,
 } from './pages';
 
-//import Users from './pages/admin/users';
 import AllUsers from './pages/superadmin/allUsers';
 import AddUser from './pages/superadmin/addUser';
 import EditUser from './pages/superadmin/editUser';
@@ -31,11 +30,8 @@ import DeleteProduct from './pages/superadmin/deleteProduct';
 import AllOrders from './pages/admin/orders';
 import AdminProducts from './pages/admin/products';
 
-
-// ✅ Login imported separately with loader and action
 import Login, { loader as loginLoader, action as loginAction } from './pages/login';
 
-// Actions and loaders
 import { action as registerAction } from './pages/register';
 import { loader as dashboardLoader } from './pages/dashboard';
 import { loader as aboutusLoader } from './pages/aboutus';
@@ -46,6 +42,20 @@ import { loader as adminDashboardLoader } from './pages/admin';
 import { loader as superAdminLoader } from './pages/superadmin';
 import { loader as allUsersLoader } from './pages/superadmin/allUsers';
 
+import Layout from './components/layout'; // Make sure this points to the correct path
+
+// New loader for Layout that fetches user data
+async function layoutLoader() {
+  try {
+    const response = await fetch('/api/auth/user'); // or your backend route that returns user info
+    if (!response.ok) throw new Error('Failed to fetch user');
+    const user = await response.json();
+    return { user };
+  } catch (error) {
+    // fallback user or redirect to login if needed
+    return { user: null };
+  }
+}
 
 const router = createBrowserRouter([
   {
@@ -77,6 +87,16 @@ const router = createBrowserRouter([
     errorElement: <Error />,
   },
   {
+    path: '/admin/orders',
+    element: <AllOrders />,
+    errorElement: <Error />,
+  },
+  {
+    path: '/admin/products',
+    element: <AdminProducts />,
+    errorElement: <Error />,
+  },
+  {
     path: '/superadmin',
     element: <SuperAdmin />,
     loader: superAdminLoader,
@@ -91,67 +111,31 @@ const router = createBrowserRouter([
   {
     path: '/superadmin/addUser',
     element: <AddUser />,
-    //loader: allUsersLoader,
     errorElement: <Error />,
   },
   {
     path: '/superadmin/editUser/:userId',
     element: <EditUser />,
-    // loader: allUsersLoader,
     errorElement: <Error />,
   },
-
   {
     path: '/superadmin/deleteUser/:userId',
     element: <DeleteUser />,
-   // loader: allUsersLoader,
-    errorElement: <Error />,
-  },
-  {
-    path: '/superadmin/updateProduct/:id',
-    element: <UpdateProduct />,
-    // loader: allUsersLoader,
-    errorElement: <Error />,
-  },
-
-  {
-    path: '/superadmin/deleteProduct/:id',
-    element: <DeleteProduct />,
-   // loader: allUsersLoader,
     errorElement: <Error />,
   },
   {
     path: '/superadmin/manageProducts',
     element: <Products />,
-   // loader: allUsersLoader,
     errorElement: <Error />,
   },
   {
-    path: '/admin/orders',
-    element: <AllOrders />,
+    path: '/superadmin/updateProduct/:id',
+    element: <UpdateProduct />,
     errorElement: <Error />,
   },
   {
-    path: '/admin/products',
-    element: <AdminProducts />,
-    errorElement: <Error />,
-  },
-  {
-    path: '/dashboard',
-    element: <Dashboard />,
-    loader: dashboardLoader,
-    errorElement: <Error />,
-  },
-  {
-    path: '/profile',
-    element: <Profile />,
-    //loader: dashboardLoader,
-    errorElement: <Error />,
-  },
-  {
-    path: '/menu',
-    element: <Menu />,
-    loader: menuLoader,
+    path: '/superadmin/deleteProduct/:id',
+    element: <DeleteProduct />,
     errorElement: <Error />,
   },
   {
@@ -170,22 +154,47 @@ const router = createBrowserRouter([
     errorElement: <Error />,
   },
   {
-    path: '/viewMyOrder',
-    element: <ViewMyOrder />,
-    loader: viewMyOrder,
+    path: '/profile',
+    element: <Profile />,
     errorElement: <Error />,
   },
+
+  // PAGES WITH NAVBAR + FOOTER WRAPPED IN <Layout> WITH loader FOR USER DATA
   {
-    path: '/aboutus',
-    element: <AboutUs />,
-    loader: aboutusLoader,
-    errorElement: <Error />,
-  },
-  {
-    path: '/settings',
-    element: <Settings />,
-    loader: settingsLoader,
-    errorElement: <Error />,
+    element: <Layout />, // Shared layout with Navbar using useLoaderData
+    loader: layoutLoader, // <-- This provides { user } to all children routes inside Layout
+    children: [
+      {
+        path: '/dashboard',
+        element: <Dashboard />,
+        loader: dashboardLoader,
+        errorElement: <Error />,
+      },
+      {
+        path: '/aboutus',
+        element: <AboutUs />,
+        loader: aboutusLoader,
+        errorElement: <Error />,
+      },
+      {
+        path: '/viewMyOrder',
+        element: <ViewMyOrder />,
+        loader: viewMyOrder,
+        errorElement: <Error />,
+      },
+      {
+        path: '/menu',
+        element: <Menu />,
+        loader: menuLoader,
+        errorElement: <Error />,
+      },
+      {
+        path: '/settings',
+        element: <Settings />,
+        loader: settingsLoader,
+        errorElement: <Error />,
+      },
+    ],
   },
 ]);
 

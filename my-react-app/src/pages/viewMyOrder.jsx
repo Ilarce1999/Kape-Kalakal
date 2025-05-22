@@ -1,255 +1,252 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate, useLoaderData, redirect } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate, useLoaderData, redirect } from 'react-router-dom';
 import customFetch from '../../../utils/customFetch';
 import { toast } from 'react-toastify';
 
-// Loader to fetch current user data
 export const loader = async () => {
   try {
-    const { data } = await customFetch.get('/users/current-user');
-    if (!data) throw new Error("User not found");
-    return data;
+    const { data } = await customFetch.get('/orders/my-orders');
+    // Check if the data contains orders
+    if (!data || data.length === 0) {
+      throw new Error('No orders found');
+    }
+    return data; // Return orders data
   } catch (error) {
+    toast.error('Error fetching orders');
     return redirect('/');
   }
 };
 
-const ViewMyOrder = () => {
-  const [orders, setOrders] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { user } = useLoaderData();
-  const location = useLocation();
+const ViewOrder = () => {
+  const orders = useLoaderData(); // Get orders data from the loader
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchMyOrders = async () => {
-      try {
-        const res = await fetch('http://localhost:5200/api/v1/orders/my-orders', {
-          method: 'GET',
-          credentials: 'include',
-        });
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
-        if (!res.ok) throw new Error('Failed to fetch your orders');
-
-        const data = await res.json();
-        setOrders(data);
-      } catch (err) {
-        console.error('Error fetching my orders:', err);
-      }
-    };
-
-    fetchMyOrders();
-  }, []);
-
-  const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
-
-  const logoutUser = async () => {
-    try {
-      await customFetch.get('/auth/logout');
-      navigate('/login');
-      toast.success('Logging out...');
-    } catch (error) {
-      toast.error('An error occurred while logging out.');
-    }
+  const handleViewOrder = (order) => {
+    console.log(order); // Add a console log to check if order data is correctly passed
+    setSelectedOrder(order); // Set the selected order for modal view
   };
 
-  const openOrderModal = (order) => {
-    setSelectedOrder(order);
+  const handleCloseOrder = () => {
+    setSelectedOrder(null); // Close the order details modal
   };
 
-  const closeOrderModal = () => {
-    setSelectedOrder(null);
-  };
-
-  const handlePayNow = async (order) => {
-    try {
-      const response = await customFetch.post(`/orders/${order._id}/pay`, {
-        method: order.paymentMethod, // e.g. 'PayPal' or 'GCash'
-      });
-
-      toast.success('Payment successful!');
-      setOrders((prev) =>
-        prev.map((o) => (o._id === order._id ? { ...o, paymentStatus: 'Paid' } : o))
-      );
-      closeOrderModal();
-    } catch (error) {
-      console.error('Payment error:', error);
-      toast.error('Payment failed. Please try again.');
-    }
-  };
-
-  const getLinkStyle = (path) => {
-    const isActive = location.pathname === path;
-    return {
+  const styles = {
+    contentWrapper: {
+      padding: '40px 30px',
+      backgroundColor: '#2c1b0b',
       color: 'white',
-      fontSize: '1rem',
+      fontFamily: "'Playfair Display', serif",
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+    },
+    headerSection: {
+      width: '100%',
+      marginBottom: '40px',
+      textAlign: 'center',
+    },
+    title: {
+      fontSize: '2.5rem',
+      color: '#FFD700',
+      marginBottom: '20px',
+      marginTop: '3rem',
       fontWeight: 'bold',
+    },
+    paragraph: {
+      fontSize: '1.2rem',
+      lineHeight: '1.8',
+      marginBottom: '20px',
+    },
+    ordersTable: {
+      width: '100%',
+      marginTop: '0px',
+    },
+    table: {
+      width: '100%',
+      borderCollapse: 'collapse',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      marginBottom: '40px',
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    },
+    tableHeader: {
+      backgroundColor: '#5a3b22',
+      color: 'white',
+      padding: '16px 20px',
+      fontSize: '1.2rem',
+      textAlign: 'left',
+      borderBottom: '2px solid #333',
+      textTransform: 'uppercase',
+      fontWeight: 'bold',
+    },
+    tableCell: {
+      padding: '14px 20px',
+      border: '1px solid #ddd',
+      fontSize: '1rem',
+      textAlign: 'left',
+      backgroundColor: '#ADAEb3',
+      color: '#000000',
+      wordBreak: 'break-word',
+    },
+    tableCellBold: {
+      fontWeight: 'bold',
+    },
+    tableRow: {
+      transition: 'background-color 0.3s ease',
+    },
+    tableRowHover: {
+      backgroundColor: '#704214',
+    },
+    viewButton: {
+      backgroundColor: '#5a3b22',
+      color: 'white',
+      padding: '8px 16px',
+      border: 'none',
+      borderRadius: '5px',
+      cursor: 'pointer',
+      transition: 'background-color 0.3s ease',
+    },
+    viewButtonHover: {
+      backgroundColor: '#704214',
+    },
+    modalBackdrop: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1001,
+    },
+    modalContent: {
+      backgroundColor: '#2c1b0b',
+      padding: '20px',
+      borderRadius: '8px',
+      width: '80%',
+      maxWidth: '600px',
+      maxHeight: '80vh',
+      overflowY: 'auto',
+      fontSize: '1rem',
+      lineHeight: '1.6',
+    },
+    modalTitle: {
+      fontSize: '1.5rem',
+      marginBottom: '15px',
+      fontWeight: 'bold',
+    },
+    closeButton: {
+      backgroundColor: '#5a3b22',
+      color: 'white',
+      padding: '10px 20px',
+      border: 'none',
+      borderRadius: '5px',
+      cursor: 'pointer',
+      marginTop: '20px',
+      fontSize: '1rem',
+    },
+    noOrdersText: {
+      textAlign: 'left',
+      fontSize: '1.5rem',
+      color: '#FFD700',
+      marginTop: '3.2rem',
+      marginBottom: '15px',
+    },
+    noOrdersButton: {
+      marginTop: '0px',
+      padding: '12px 25px',
+      backgroundColor: '#FFD700',
+      color: '#2c1b0b',
       textDecoration: 'none',
-      padding: '5px 10px',
-      ...(isActive ? { color: '#ffd700' } : {}),
-    };
+      borderRadius: '5px',
+      fontSize: '1.2rem',
+    },
+    noOrdersContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+    },
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Navbar */}
-      <div style={{ backgroundColor: '#5a3b22', width: '100%', height: '70px', position: 'fixed', top: 0, zIndex: 1000 }}>
-        <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', fontFamily: "'Playfair Display', serif" }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <img
-              src="/images/kape.jpg"
-              alt="Logo"
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                objectFit: 'cover',
-                marginRight: '10px',
-              }}
-            />
-            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '1.5rem' }}>Kape Kalakal</span>
-          </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <Link to="/dashboard" style={getLinkStyle('/dashboard')}>HOME</Link>
-            <Link to="/aboutus" style={getLinkStyle('/aboutus')}>ABOUT US</Link>
-            <Link to="/viewMyOrder" style={getLinkStyle('/viewMyOrder')}>MY ORDERS</Link>
-            <Link to="/menu" style={getLinkStyle('/menu')}>PRODUCTS</Link>
-            <Link to="/settings" style={getLinkStyle('/settings')}>SETTINGS</Link>
-            <div style={{ position: 'relative', cursor: 'pointer', marginTop: '6px' }} onClick={toggleDropdown}>
-              <button style={{ backgroundColor: 'transparent', border: 'none', color: 'white', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span>{user?.name}</span>
-                <span>▼</span>
-              </button>
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: '0',
-                backgroundColor: '#5a3b22',
-                color: 'white',
-                padding: '10px 20px',
-                borderRadius: '5px',
-                boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                display: isDropdownOpen ? 'block' : 'none',
-                zIndex: 10,
-                minWidth: '120px',
-              }}>
-                <div
-                  style={{ padding: '5px 10px', cursor: 'pointer', textAlign: 'center' }}
-                  onClick={() => navigate('/profile')}
-                >
-                  Profile
-                </div>
-                <div
-                  style={{ padding: '5px 10px', cursor: 'pointer', textAlign: 'center' }}
-                  onClick={logoutUser}
-                >
-                  Logout
-                </div>
-              </div>
-            </div>
-          </div>
-        </nav>
-      </div>
+    <div style={styles.contentWrapper}>
+      {/* Only show the Hero Section if orders exist */}
+      {orders.length > 0 ? (
+        <div style={styles.headerSection}>
+          <h3 style={styles.title}>Order History</h3>
+        </div>
+      ) : (
+        <div style={styles.noOrdersContainer}>
+          <p style={styles.noOrdersText}>No orders yet!</p>
+          <Link to="/menu" style={styles.noOrdersButton}>
+            Explore Menu
+          </Link>
+        </div>
+      )}
 
-      {/* Main Content */}
-      <div style={{ padding: '140px 5vw 40px', textAlign: 'center', backgroundColor: '#2c1b0b', color: 'white', flex: 1 }}>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem' }}>My Orders</h2>
-        {orders.length === 0 ? (
-          <p>No orders yet.</p>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px', fontFamily: "'Playfair Display', serif" }}>
+      {/* Orders List */}
+      {orders.length > 0 && (
+        <div style={styles.ordersTable}>
+          <table style={styles.table}>
             <thead>
               <tr>
-                <th style={headerStyle}>Order ID</th>
-                <th style={headerStyle}>Date</th>
-                <th style={headerStyle}>Action</th>
+                <th style={styles.tableHeader}>Order ID</th>
+                <th style={styles.tableHeader}>Date</th>
+                <th style={styles.tableHeader}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order) => (
                 <tr key={order._id}>
-                  <td style={cellStyle}>{order._id}</td>
-                  <td style={cellStyle}>{new Date(order.createdAt).toLocaleString()}</td>
-                  <td style={cellStyle}>
+                  <td style={styles.tableCell}>{order._id}</td>
+                  <td style={styles.tableCell}>
+                    {new Date(order.createdAt).toLocaleString()}
+                  </td>
+                  <td style={styles.tableCell}>
                     <button
-                      style={{
-                        padding: '5px 10px',
-                        backgroundColor: '#8c6239',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                      }}
-                      onClick={() => openOrderModal(order)}
+                      style={styles.viewButton}
+                      onClick={() => handleViewOrder(order)}
+                      onMouseOver={(e) => e.target.style.backgroundColor = styles.viewButtonHover.backgroundColor}
+                      onMouseOut={(e) => e.target.style.backgroundColor = styles.viewButton.backgroundColor}
                     >
-                      View
+                      View Details
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Modal */}
+      {/* Order Details Modal */}
       {selectedOrder && (
-        <div style={modalBackdropStyle} onClick={closeOrderModal}>
-          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>Order Details</h3>
-
-            <p style={{ marginBottom: '10px' }}><strong>Order ID:</strong> {selectedOrder._id}</p>
-            <p style={{ marginBottom: '10px' }}><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
-            <p style={{ marginBottom: '10px' }}><strong>Items:</strong></p>
-            <ul style={{ marginBottom: '10px', paddingLeft: '20px' }}>
-              {selectedOrder.items.map((item, index) => (
-                <li key={index} style={{ marginBottom: '8px' }}>
-                  {item.name} — {item.quantity} × ₱{item.price.toFixed(2)}
+        <div style={styles.modalBackdrop} onClick={handleCloseOrder}>
+          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>Order Details</h3>
+            <p><strong>Order ID:</strong> {selectedOrder._id}</p>
+            <p><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
+            <p><strong>Items:</strong></p>
+            <ul>
+              {selectedOrder.items?.map((item, index) => (
+                <li key={index}>
+                  {item.name} - {item.quantity} × ₱{item.price?.toFixed(2)}
                 </li>
               ))}
             </ul>
-            <p style={{ marginBottom: '10px' }}><strong>Subtotal:</strong> ₱{selectedOrder.subtotal.toFixed(2)}</p>
-            <p style={{ marginBottom: '10px' }}><strong>Delivery Fee:</strong> ₱{selectedOrder.deliveryFee.toFixed(2)}</p>
-            <p style={{ marginBottom: '10px' }}><strong>Total:</strong> ₱{selectedOrder.total.toFixed(2)}</p>
-            <p style={{ marginBottom: '10px' }}><strong>Payment Method:</strong> {selectedOrder.paymentMethod}</p>
-            <p style={{ marginBottom: '10px' }}><strong>Address:</strong> {selectedOrder.address}</p>
-            <p style={{ marginBottom: '20px' }}><strong>Payment Status:</strong> {selectedOrder.paymentStatus || 'Unpaid'}</p>
-            <p style={{ marginBottom: '20px' }}><strong>Status:</strong> {selectedOrder.deliveryStatus}</p>
-
-            {selectedOrder.paymentStatus !== 'Paid' && (
-              <button
-                onClick={() => handlePayNow(selectedOrder)}
-                style={{
-                  marginTop: '10px',
-                  padding: '10px 18px',
-                  backgroundColor: '#228B22',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '1.1rem',
-                }}
-              >
-                Pay Now
-              </button>
-            )}
-
-            <button
-              onClick={closeOrderModal}
-              style={{
-                marginTop: '10px',
-                padding: '10px 18px',
-                backgroundColor: '#5a3b22',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '1.1rem',
-              }}
-            >
-              Close
-            </button>
+            <p><strong>Subtotal:</strong> ₱{selectedOrder.subtotal?.toFixed(2)}</p>
+            <p><strong>Delivery Fee:</strong> ₱{selectedOrder.deliveryFee?.toFixed(2)}</p>
+            <p><strong>Total:</strong> ₱{selectedOrder.total?.toFixed(2)}</p>
+            <p><strong>Payment Method:</strong> {selectedOrder.paymentMethod}</p>
+            <p><strong>Payment Status:</strong> {selectedOrder.paymentStatus || 'Unpaid'}</p>
+            <p><strong>Status:</strong> {selectedOrder.deliveryStatus}</p>
+            <button style={styles.closeButton} onClick={handleCloseOrder}>Close</button>
           </div>
         </div>
       )}
@@ -257,43 +254,4 @@ const ViewMyOrder = () => {
   );
 };
 
-const headerStyle = {
-  padding: '12px',
-  backgroundColor: '#4b2e15',
-  color: 'white',
-  border: '1px solid #8c6239',
-};
-
-const cellStyle = {
-  padding: '10px',
-  border: '1px solid #8c6239',
-};
-
-const modalBackdropStyle = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: 'rgba(0, 0, 0, 0.6)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1001,
-};
-
-const modalContentStyle = {
-  backgroundColor: '#4b2e15',
-  color: 'white',
-  padding: '30px',
-  borderRadius: '10px',
-  width: '90%',
-  maxWidth: '600px',
-  maxHeight: '90vh',
-  overflowY: 'auto',
-  fontFamily: "'Playfair Display', serif",
-  fontSize: '1.1rem',
-  lineHeight: '1.6',
-};
-
-export default ViewMyOrder;
+export default ViewOrder;
