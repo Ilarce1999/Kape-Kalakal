@@ -197,11 +197,6 @@ const Settings = () => {
   const location = useLocation();
   const { user } = useLoaderData();
 
-  // States for passwords & validation errors
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState({});
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -217,50 +212,6 @@ const Settings = () => {
     };
   };
 
-  // Form validation and submit handler
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    setErrors({});
-
-    // Basic frontend validation
-    let validationErrors = {};
-    if (!currentPassword) validationErrors.currentPassword = 'Please enter your current password.';
-    if (!newPassword) validationErrors.newPassword = 'Please enter your new password.';
-    if (!confirmPassword) validationErrors.confirmPassword = 'Please confirm your new password.';
-    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
-      validationErrors.confirmPassword = 'New passwords do not match.';
-    }
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    // Verify current password with backend
-    try {
-      // Example: backend endpoint to verify password
-      await customFetch.post('/users/verify-password', {
-        email: user.email,
-        password: currentPassword,
-      });
-
-      // If verification passes, update password API call
-      await customFetch.put('/users/update-password', {
-        email: user.email,
-        newPassword,
-      });
-
-      toast.success('Password updated successfully!');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        setErrors({ currentPassword: 'Current password is incorrect.' });
-      } else {
-        toast.error('An error occurred. Please try again.');
-      }
-    }
-  };
 
   const logoutUser = async () => {
     try {
