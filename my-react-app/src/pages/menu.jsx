@@ -175,6 +175,7 @@ const Menu = ({ logoutUser }) => {
       flexDirection: 'column',
       minHeight: '100vh',
       backgroundColor: '#2c1b0b',
+      paddingTop: '60px', // <-- add this to push content down
     },
     cartWrapper: { position: 'relative', cursor: 'pointer' },
     cartIcon: { fontSize: '20px', color: 'white' },

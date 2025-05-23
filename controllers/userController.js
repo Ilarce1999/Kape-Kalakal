@@ -14,13 +14,52 @@ export const getCurrentUser = async (req, res) => {
 
 export const getAppStats = async (req, res) => {
   try {
-    const users = await User.countDocuments();
-    const orders = await Order.countDocuments();
-    res.status(StatusCodes.OK).json({ users, orders });
+    const totalUsers = await User.countDocuments();
+    const totalOrders = await Order.countDocuments();
+
+    // Aggregate to find the best-selling product
+    const bestSelling = await Order.aggregate([
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.productId',
+          totalQuantity: { $sum: '$items.quantity' },
+        },
+      },
+      { $sort: { totalQuantity: -1 } },
+      { $limit: 1 },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'productDetails',
+        },
+      },
+      { $unwind: '$productDetails' },
+      {
+        $project: {
+          _id: 0,
+          name: '$productDetails.name',
+          image: '$productDetails.image',
+          totalQuantity: 1,
+        },
+      },
+    ]);
+
+    const bestProduct = bestSelling.length > 0 ? bestSelling[0] : null;
+
+    res.status(StatusCodes.OK).json({
+      totalUsers,
+      totalOrders,
+      bestProduct,
+    });
   } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: "Error fetching stats" });
+    console.error('Dashboard stats error:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Error fetching stats' });
   }
 };
+
 
 export const updateUser = async (req, res) => {
   try {

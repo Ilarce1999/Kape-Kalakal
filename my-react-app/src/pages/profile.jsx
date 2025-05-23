@@ -155,8 +155,8 @@ const Profile = () => {
 
   return (
     <div style={pageWrapper}>
-      <FaUserCircle size={80} color="#371D10" style={{ marginBottom: '20px' }} />
-      <h1 style={{ color: '#371D10', marginBottom: '30px' }}>My Profile</h1>
+      <FaUserCircle size={80} color="#FFFFFF" style={{ marginBottom: '20px' }} />
+      <h1 style={{ color: '#FFFFFF', marginBottom: '30px' }}>My Profile</h1>
       <div style={formContainer}>
         {!isChangingPassword ? (
           <>

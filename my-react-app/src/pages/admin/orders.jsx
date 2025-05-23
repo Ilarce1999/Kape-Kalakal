@@ -129,7 +129,7 @@ const Orders = ({ currentUser }) => {
     <div
       style={{
         paddingTop: '120px',
-        backgroundColor: '#2c1b0b',
+        backgroundColor: '#2c1b0b', 
         minHeight: '100vh',
         fontFamily: "'Playfair Display', serif",
       }}

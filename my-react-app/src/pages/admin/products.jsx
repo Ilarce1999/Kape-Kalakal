@@ -91,7 +91,7 @@ const styles = {
   content: {
     paddingTop: '100px',
     padding: '40px 20px',
-    backgroundColor: '#2c1b0b',
+    backgroundColor: '#2c1b0b', 
     minHeight: '100vh',
   },
   heading: {

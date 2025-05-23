@@ -6,16 +6,14 @@ import { toast } from 'react-toastify';
 export const loader = async () => {
   try {
     const { data } = await customFetch.get('/orders/my-orders');
-    // Check if the data contains orders
-    if (!data || data.length === 0) {
-      throw new Error('No orders found');
-    }
-    return data; // Return orders data
+    // Always return data (even if empty)
+    return data || [];
   } catch (error) {
-    toast.error('Error fetching orders');
+    // Only redirect if the fetch fails (not just empty orders)
     return redirect('/');
   }
 };
+
 
 const ViewOrder = () => {
   const orders = useLoaderData(); // Get orders data from the loader
