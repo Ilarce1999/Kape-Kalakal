@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
- "scripts": {
+"scripts": {
   "setup-project": "npm i && cd client && npm i",
   "server": "nodemon src/server.js",
   "client": "cd my-react-app && npm run dev",
-  "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\""
+  "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
+  "start": "node src/server.js"
 },
   "keywords": [],
   "author": "",
