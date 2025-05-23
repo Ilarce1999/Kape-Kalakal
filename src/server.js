@@ -1,4 +1,3 @@
-// server.js
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -13,16 +12,16 @@ import { fileURLToPath } from 'url';
 import cors from 'cors';
 import cloudinary from 'cloudinary';
 
-// Routers
-import orderRouter from './routes/orderRouter.js';
-import authRouter from './routes/authRouter.js';
-import userRouter from './routes/userRouter.js';
-import productRouter from './routes/productRouter.js';
-import paymentRouter from './routes/paymentRouter.js';
+// Routers - updated paths (go up one directory)
+import orderRouter from '../routes/orderRouter.js';
+import authRouter from '../routes/authRouter.js';
+import userRouter from '../routes/userRouter.js';
+import productRouter from '../routes/productRouter.js';
+import paymentRouter from '../routes/paymentRouter.js';
 
 // Middleware
-import errorHandlerMiddleware from './middleware/errorHandlerMiddleware.js';
-import { authenticateUser } from './middleware/authMiddleware.js';
+import errorHandlerMiddleware from '../middleware/errorHandlerMiddleware.js';
+import { authenticateUser } from '../middleware/authMiddleware.js';
 
 // Get __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -48,12 +47,10 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // ✅ Basic Routes
-
 app.get('/api/v1/test', (req, res) => res.json({ msg: 'test route' }));
 
 // ✅ Protected Routes
 app.use('/api/v1/orders', authenticateUser, orderRouter);
-
 app.use('/api/v1/users', authenticateUser, userRouter);
 
 // ✅ Public Routes
@@ -61,9 +58,9 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/products', productRouter);
 app.use('/api/v1/payments', paymentRouter);
 
-app.get('*', (req,res)=>{
-  res.sendFile(path.resolve(__dirname,'./public', 'index.html'));
-})
+app.get('*', (req,res) => {
+  res.sendFile(path.resolve(__dirname, './public', 'index.html'));
+});
 
 // 404 handler
 app.use('*', (req, res) => {
