@@ -280,19 +280,18 @@ const Dashboard = () => {
       <style>
         {`
           @media (max-width: 768px) {
-            .nav-items {
-              display: none;
-              flex-direction: column;
-              width: 100%;
-              background-color: #8B4513;
-            }
-            .nav-items.show {
-              display: flex;
-            }
-            .hamburger {
-              display: flex !important;
-            }
-          }
+          .hamburger {
+          display: flex !important;
+        }
+
+         .nav-items {
+          display: none;
+        }
+
+         .nav-items.show {
+          display: flex !important;
+        }
+      }
         `}
       </style>
 
@@ -404,7 +403,7 @@ const Dashboard = () => {
           </div>
         </div>
         <Outlet />
-      
+
       </div>
 
       {toastVisible && (

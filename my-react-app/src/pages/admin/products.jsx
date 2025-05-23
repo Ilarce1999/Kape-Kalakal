@@ -289,30 +289,6 @@ const Products = () => {
 
   return (
     <div>
-      <div style={styles.navbarWrapper}>
-        <nav style={styles.navbar}>
-          <div style={styles.navLeft}>
-            <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
-            <span style={styles.logoText}>Kape Kalakal - Admin</span>
-          </div>
-          <div style={styles.navItems}>
-            {/* ⚠️ Update all the paths below from /superadmin/... to /admin/... */}
-            <Link to="/admin" style={getLinkStyle('/admin')}>HOME</Link>
-            <Link to="/admin/products" style={getLinkStyle('/admin/products')}>PRODUCTS</Link>
-            <Link to="/admin/orders" style={getLinkStyle('/admin/orders')}>ORDERS</Link>
-            <div style={styles.dropdown} onClick={toggleDropdown}>
-              <button style={styles.dropdownButton}>
-                <span>{currentUser?.name}</span>
-                <span style={styles.icon}>▼</span>
-              </button>
-              <div style={{ ...styles.dropdownMenu, ...(isDropdownOpen ? styles.dropdownShow : {}) }}>
-                <div style={{ cursor: 'pointer' }} onClick={logoutUser}>Logout</div>
-              </div>
-            </div>
-          </div>
-        </nav>
-      </div>
-
       <div style={styles.content}>
         <h2 style={styles.heading}>Products</h2>
 

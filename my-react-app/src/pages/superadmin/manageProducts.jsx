@@ -5,89 +5,7 @@ import customFetch from '../../../../utils/customFetch.js';
 import { toast } from 'react-toastify';
 
 const styles = {
-  navbarWrapper: {
-    backgroundColor: '#5a3b22',
-    width: '100%',
-    height: '70px',
-    position: 'fixed',
-    top: 0,
-    zIndex: 1000,
-    fontFamily: "'Playfair Display', serif",
-  },
-  navbar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '0 20px',
-    height: '100%',
-    flexWrap: 'wrap',
-  },
-  navLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  logo: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-  },
-  logoText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: '1.5rem',
-    fontFamily: "'Playfair Display', serif",
-  },
-  navItems: {
-    display: 'flex',
-    gap: '20px',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  navItem: {
-    color: 'white',
-    fontSize: '1rem',
-    fontWeight: 'bold',
-    textDecoration: 'none',
-    cursor: 'pointer',
-    padding: '5px 10px',
-    transition: 'color 0.3s ease, background-color 0.3s ease',
-  },
-  activeLink: {
-    color: '#ffd700',
-  },
-  dropdown: {
-    position: 'relative',
-    cursor: 'pointer',
-  },
-  dropdownButton: {
-    backgroundColor: 'transparent',
-    border: 'none',
-    color: 'white',
-    fontSize: '1rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-    cursor: 'pointer',
-  },
-  dropdownMenu: {
-    position: 'absolute',
-    top: '100%',
-    right: 0,
-    backgroundColor: '#fff',
-    color: '#371D10',
-    padding: '10px 20px',
-    borderRadius: '5px',
-    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-    display: 'none',
-  },
-  dropdownShow: {
-    display: 'block',
-  },
-  icon: {
-    fontSize: '18px',
-  },
+
   content: {
     paddingTop: '100px',
     padding: '40px 20px',
@@ -188,16 +106,6 @@ const ManageProducts = () => {
     }
   };
 
-  const logoutUser = async () => {
-    try {
-      await customFetch.get('/auth/logout');
-      toast.success('Logging out...');
-      navigate('/login');
-    } catch (err) {
-      toast.error('Logout failed');
-    }
-  };
-
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
   };
@@ -290,29 +198,6 @@ const ManageProducts = () => {
 
   return (
     <div>
-      <div style={styles.navbarWrapper}>
-        <nav style={styles.navbar}>
-          <div style={styles.navLeft}>
-            <img src="/images/kape.jpg" alt="Logo" style={styles.logo} />
-            <span style={styles.logoText}>Kape Kalakal - Super Admin</span>
-          </div>
-          <div style={styles.navItems}>
-            <Link to="/superadmin" style={getLinkStyle('/superadmin')}>HOME</Link>
-            <Link to="/superadmin/manageProducts" style={getLinkStyle('/superadmin/manageProducts')}>MANAGE PRODUCTS</Link>
-            <Link to="/superadmin/allUsers" style={getLinkStyle('/superadmin/allUsers')}>MANAGE USERS</Link>
-            <div style={styles.dropdown} onClick={toggleDropdown}>
-              <button style={styles.dropdownButton}>
-                <span>{currentUser?.name}</span>
-                <span style={styles.icon}>▼</span>
-              </button>
-              <div style={{ ...styles.dropdownMenu, ...(isDropdownOpen ? styles.dropdownShow : {}) }}>
-                <div style={{ cursor: 'pointer' }} onClick={logoutUser}>Logout</div>
-              </div>
-            </div>
-          </div>
-        </nav>
-      </div>
-
       <div style={styles.content}>
         <h2 style={styles.heading}>Manage Products</h2>
 

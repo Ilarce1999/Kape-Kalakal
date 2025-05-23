@@ -54,86 +54,6 @@ const SuperAdmin = () => {
       {/* Responsive Styles */}
       <style>
         {`
-          .navbar-wrapper {
-            background-color: #5a3b22;
-            width: 100%;
-            height: auto;
-            position: fixed;
-            top: 0;
-            z-index: 1000;
-            font-family: 'Playfair Display', serif;
-          }
-
-          .navbar {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            flex-wrap: wrap;
-          }
-
-          .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-          }
-
-          .logo {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-          }
-
-          .logo-text {
-            color: white;
-            font-weight: bold;
-            font-size: 1.5rem;
-            font-family: 'Playfair Display', serif;
-            margin-top: 5px;
-          }
-
-          .nav-items {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-            padding-top: 10px;
-          }
-
-          .dropdown {
-            position: relative;
-            cursor: pointer;
-          }
-
-          .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: white;
-            color: #371D10;
-            padding: 10px 20px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            display: none;
-          }
-
-          .dropdown-menu.show {
-            display: block;
-          }
-
-          .dropdown-button {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-          }
-
           .content-container {
             display: flex;
             flex-direction: column;
@@ -185,30 +105,6 @@ const SuperAdmin = () => {
           }
         `}
       </style>
-
-      {/* Navbar */}
-      <div className="navbar-wrapper">
-        <nav className="navbar">
-          <div className="nav-left">
-            <img src="/images/kape.jpg" alt="Logo" className="logo" />
-            <span className="logo-text">Kape Kalakal - Super Admin</span>
-          </div>
-          <div className="nav-items">
-            <Link to="/superadmin" style={getLinkStyle('/superadmin')}>HOME</Link>
-            <Link to="/superadmin/manageProducts" style={getLinkStyle('/superadmin/manageProducts')}>MANAGE PRODUCTS</Link>
-            <Link to="/superadmin/allUsers" style={getLinkStyle('/superadmin/allUsers')}>MANAGE USERS</Link>
-            <div className="dropdown" onClick={toggleDropdown}>
-              <button className="dropdown-button">
-                <span>Super Admin</span>
-                <span style={{ fontSize: '18px' }}>▼</span>
-              </button>
-              <div className={`dropdown-menu ${isDropdownOpen ? 'show' : ''}`}>
-                <div onClick={logoutUser}>Logout</div>
-              </div>
-            </div>
-          </div>
-        </nav>
-      </div>
 
       {/* Page Content */}
       <div className="content-container">

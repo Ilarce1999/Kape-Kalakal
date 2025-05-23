@@ -133,13 +133,13 @@ const Navbar = () => {
         </div>
 
         <div style={styles.navItems}>
-          <Link to="/admin" style={getLinkStyle('/admin')}>HOME</Link>
-          <Link to="/admin/products" style={getLinkStyle('/admin/products')}>PRODUCTS</Link>
-          <Link to="/admin/orders" style={getLinkStyle('/admin/orders')}>ORDERS</Link>
+          <Link to="/superadmin" style={getLinkStyle('/superadmin')}>HOME</Link>
+          <Link to="/superadmin/manageProducts" style={getLinkStyle('/superadmin/manageProducts')}>MANAGE PRODUCTS</Link>
+          <Link to="/superadmin/allUsers" style={getLinkStyle('/superadmin/allUsers')}>MANAGE USERS</Link>
 
           <div style={styles.dropdown} onClick={toggleDropdown}>
             <button style={styles.dropdownButton}>
-              <span>{user?.name || 'Admin'}</span>
+              <span>{user?.name || 'Super Admin'}</span>
               <span>▼</span>
             </button>
             <div

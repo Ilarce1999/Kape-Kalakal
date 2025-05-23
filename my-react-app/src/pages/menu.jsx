@@ -94,10 +94,10 @@ const Menu = ({ logoutUser }) => {
       updatedOrders = orderDetails.map(item =>
         item.productId === product._id
           ? {
-              ...item,
-              quantity: item.quantity + quantity,
-              totalPrice: (item.quantity + quantity) * product.price,
-            }
+            ...item,
+            quantity: item.quantity + quantity,
+            totalPrice: (item.quantity + quantity) * product.price,
+          }
           : item
       );
     } else {
@@ -276,27 +276,31 @@ const Menu = ({ logoutUser }) => {
 
   return (
     <div style={styles.pageWrapper}>
-      <div style={{ padding: '5.5rem' }}>
+      <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
         <input
           type="text"
           placeholder="Search for coffee"
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{
             padding: '10px',
-            width: '25%',
+            width: '100%',
+            maxWidth: '400px',
             borderRadius: '5px',
+            marginTop: '60px',
             marginBottom: '20px',
             fontSize: '1rem',
+            boxSizing: 'border-box',
           }}
         />
 
         {stockError && <div style={{ color: 'red', marginBottom: '20px' }}>{stockError}</div>}
 
         <div
+          className="product-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '20px',
+            gridTemplateColumns: 'repeat(4, 1fr)', 
+            gap: '20px', 
           }}
         >
           {loading ? (

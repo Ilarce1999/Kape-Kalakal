@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { toast } from 'react-toastify';
 
 const Checkout = () => {
   const { state } = useLocation();
@@ -209,6 +210,7 @@ const Checkout = () => {
                   onApprove={async (data, actions) => {
                     await actions.order.capture();
                     await placeOrder('PayPal');
+                    
                   }}
                   onError={(err) => {
                     console.error('PayPal error:', err);
@@ -234,15 +236,16 @@ const Checkout = () => {
       </button>
 
       <style jsx>{`
-        .checkout-container {
+         .checkout-container {
           padding: 20px;
           max-width: 800px;
           margin: 0 auto;
           font-family: 'Segoe UI', sans-serif;
         }
-        .checkout-title {
+         .checkout-title {
           text-align: center;
           margin-bottom: 20px;
+          color: #e0e0e0; /* Light color for Receipt Summary */
         }
         .receipt-box {
           border: 1px solid #ddd;
@@ -340,12 +343,12 @@ const Checkout = () => {
         .back-button:hover {
           background-color: #808080;
         }
-        .empty-cart {
+         .empty-cart {
           text-align: center;
           font-size: 18px;
-          color: #000000;
+          color: #e0e0e0; /* Light color for No items in the cart */
           margin: 20px 0;
-        }
+  }
       `}</style>
     </div>
   );

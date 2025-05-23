@@ -95,81 +95,6 @@ const AllUsers = () => {
   return (
     <div style={{ paddingTop: '120px', backgroundColor: '#2c1b0b', minHeight: '100vh', fontFamily: "'Playfair Display', serif" }}>
 
-      {/* Navbar */}
-      <div style={{
-        backgroundColor: '#5a3b22',
-        width: '100%',
-        height: navbarHeight,
-        position: 'fixed',
-        top: 0,
-        zIndex: 1000,
-        padding: '10px 20px'
-      }}>
-        <nav style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          height: '100%',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="/images/kape.jpg" alt="Logo" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
-            <span style={{
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '1.3rem',
-              fontFamily: "'Playfair Display', serif",
-              lineHeight: '1.8',
-              marginTop: '5px'
-            }}>
-              Kape Kalakal - Super Admin
-            </span>
-          </div>
-
-          {/* <button className="hamburger" onClick={toggleMobileMenu}>☰</button> */}
-
-          <div className={`nav-items ${isMobileMenuOpen ? 'show' : ''}`} style={{ gap: '15px', display: 'flex', alignItems: 'center' }}>
-            <Link to="/superadmin" style={getLinkStyle('/superadmin')}>HOME</Link>
-            <Link to="/superadmin/manageProducts" style={getLinkStyle('/superadmin/manageProducts')}>MANAGE PRODUCTS</Link>
-            <Link to="/superadmin/allUsers" style={getLinkStyle('/superadmin/allUsers')}>MANAGE USERS</Link>
-
-            {/* Dropdown */}
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <button onClick={toggleDropdown} style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: 'white',
-                fontSize: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                cursor: 'pointer',
-              }}>
-                <span>{currentUser?.name || 'Super Admin'}</span>
-                <span style={{ fontSize: '18px' }}>▼</span>
-              </button>
-
-              {isDropdownOpen && (
-                <div style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 10px)',
-                  right: 0,
-                  backgroundColor: '#fff',
-                  color: '#371D10',
-                  padding: '10px 20px',
-                  borderRadius: '5px',
-                  boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                  zIndex: 100,
-                  minWidth: '120px',
-                  textAlign: 'center',
-                }}>
-                  <div style={{ cursor: 'pointer' }} onClick={logoutUser}>Logout</div>
-                </div>
-              )}
-            </div>
-          </div>
-        </nav>
-      </div>
 
       {/* Content */}
       <div style={{ padding: '40px' }}>
@@ -247,20 +172,6 @@ const AllUsers = () => {
           </tbody>
         </table>
       </div>
-
-      {/* Footer */}
-      <footer style={{
-        backgroundColor: '#5a3b22',
-        color: 'white',
-        textAlign: 'center',
-        padding: '15px 0',
-        position: 'fixed',
-        width: '100%',
-        bottom: 0,
-        fontFamily: "'Playfair Display', serif"
-      }}>
-        &copy; 2025 Kape Kalakal - All rights reserved
-      </footer>
     </div>
   );
 };

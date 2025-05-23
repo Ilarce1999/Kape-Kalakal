@@ -3,7 +3,7 @@ import Navbar from './NavBar';
 import Footer from '../../../components/footer';
 import { Outlet } from 'react-router-dom';
 
-const AdminLayout = ({ children }) => {
+const SuperAdminLayout = ({ children }) => {
   return (
     <>
       <Navbar />
@@ -14,4 +14,4 @@ const AdminLayout = ({ children }) => {
   );
 };
 
-export default AdminLayout;
+export default SuperAdminLayout;
