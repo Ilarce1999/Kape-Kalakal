@@ -40,6 +40,7 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.resolve(__dirname, './public')));
 
 // Enable dev logging
 if (process.env.NODE_ENV === 'development') {
@@ -47,7 +48,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // ✅ Basic Routes
-app.get('/', (req, res) => res.send('Hello World'));
+
 app.get('/api/v1/test', (req, res) => res.json({ msg: 'test route' }));
 
 // ✅ Protected Routes
@@ -59,6 +60,10 @@ app.use('/api/v1/users', authenticateUser, userRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/products', productRouter);
 app.use('/api/v1/payments', paymentRouter);
+
+app.get('*', (req,res)=>{
+  res.sendFile(path.resolve(__dirname,'./public', 'index.html'));
+})
 
 // 404 handler
 app.use('*', (req, res) => {
