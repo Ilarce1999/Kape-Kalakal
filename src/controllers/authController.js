@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
 import User from '../models/UserModel.js';
 import { comparePassword, hashPassword } from '../../utils/passwordUtils.js';
-import { UnauthenticatedError } from '../errors/customErrors.js';
+import { UnauthenticatedError } from '../../errors/customErrors.js';
 import { createJWT } from '../../utils/tokenUtils.js';
 
 export const register = async (req, res) => {
