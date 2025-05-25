@@ -7,7 +7,7 @@ import {
   deleteOrder,
   updateOrderStatus,
   getMyOrders,
-} from '../controllers/orderController.js';
+} from '../src/controllers/orderController.js';
 
 import {
   validateOrder,
