@@ -10,7 +10,7 @@ import {
   createUser,
   updateUserById,
   deleteUserById,
-} from '../controllers/userController.js';
+} from '../src/controllers/userController.js';
 
 import { validateUpdateUserInput } from '../middleware/validationMiddleware.js';
 import {
