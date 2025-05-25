@@ -1,7 +1,7 @@
 import { body, param, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import OrderModel from '../src/models/OrderModel.js';
-import User from '../models/UserModel.js';
+import User from '../src/models/UserModel.js';
 import {
   BadRequestError,
   NotFoundError,
