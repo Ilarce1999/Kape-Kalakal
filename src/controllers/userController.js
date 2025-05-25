@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import bcrypt from 'bcryptjs';
-import User from '../models/UserModel.js';
-import Order from '../models/OrderModel.js';
+import User from '../src/models/UserModel.js';
+import Order from '../src/models/OrderModel.js';
 
 export const getCurrentUser = async (req, res) => {
   try {

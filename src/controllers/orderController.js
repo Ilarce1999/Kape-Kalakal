@@ -1,5 +1,5 @@
 import OrderModel from '../models/OrderModel.js';
-import ProductModel from '../models/ProductModel.js';
+import ProductModel from '../src/models/ProductModel.js';
 import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 
