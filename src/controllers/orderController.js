@@ -1,4 +1,4 @@
-import OrderModel from '../models/OrderModel.js';
+import OrderModel from '../src/models/OrderModel.js';
 import ProductModel from '../src/models/ProductModel.js';
 import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
