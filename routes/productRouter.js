@@ -7,7 +7,7 @@ import {
   updateProduct,
   deleteProduct,
   decreaseProductStock
-} from '../src/controllers/productController.js';
+} from '../controllers/productController.js';
 
 import { authenticateUser } from '../middleware/authMiddleware.js';
 import { checkRole } from '../middleware/checkRoleMiddleware.js';
