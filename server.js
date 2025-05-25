@@ -13,15 +13,15 @@ import cors from 'cors';
 import cloudinary from 'cloudinary';
 
 // Routers - updated paths (go up one directory)
-import orderRouter from '../routes/orderRouter.js';
-import authRouter from '../routes/authRouter.js';
-import userRouter from '../routes/userRouter.js';
-import productRouter from '../routes/productRouter.js';
-import paymentRouter from '../routes/paymentRouter.js';
+import orderRouter from './routes/orderRouter.js';
+import authRouter from './routes/authRouter.js';
+import userRouter from './routes/userRouter.js';
+import productRouter from './routes/productRouter.js';
+import paymentRouter from './routes/paymentRouter.js';
 
 // Middleware
-import errorHandlerMiddleware from '../middleware/errorHandlerMiddleware.js';
-import { authenticateUser } from '../middleware/authMiddleware.js';
+import errorHandlerMiddleware from './middleware/errorHandlerMiddleware.js';
+import { authenticateUser } from './middleware/authMiddleware.js';
 
 // Get __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
