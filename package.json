@@ -1,14 +1,13 @@
 {
   "name": "jobify",
   "version": "1.0.0",
-  "description": "[Kape-Kalakal](https://kape-kalakal.onrender.com/)",
+  "description": "",
   "main": "index.js",
 "scripts": {
-  "setup-project": "npm i && cd my-react-app && npm i",
-  "setup-production-app": "npm i && cd my-react-app && npm i && npm run build ",
+  "setup-project": "npm i && cd client && npm i",
   "server": "nodemon server",
   "client": "cd my-react-app && npm run dev",
-  "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run my-react-app\""
+  "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\""
 },
   "keywords": [],
   "author": "",
