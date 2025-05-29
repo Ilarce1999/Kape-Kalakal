@@ -2,19 +2,17 @@
   "name": "jobify",
   "version": "1.0.0",
   "description": "",
-  "main": "src/server.js",
-  "type": "module",
-  "scripts": {
-    "setup-project": "npm install && cd my-react-app && npm install",
-    "server": "nodemon src/server.js",
-    "client": "cd my-react-app && npm run dev",
-    "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
-    "build-client": "cd my-react-app && npm install && npm run build",
-    "start": "node src/server.js"
-  },
+  "main": "index.js",
+"scripts": {
+  "setup-project": "npm i && cd client && npm i",
+  "server": "nodemon server",
+  "client": "cd my-react-app && npm run dev",
+  "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\""
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "module",
   "dependencies": {
     "@paypal/react-paypal-js": "^8.8.3",
     "axios": "^1.9.0",
