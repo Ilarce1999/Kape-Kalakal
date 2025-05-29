@@ -42,7 +42,7 @@ import { loader as adminDashboardLoader } from './pages/admin';
 import { loader as superAdminLoader } from './pages/superadmin';
 import { loader as allUsersLoader } from './pages/superadmin/allUsers';
 
-import Layout from './components/layout';
+import Layout from './components/Layout';
 import AdminLayout from './pages/admin/AdminComponents/AdminLayout';
 import SuperAdminLayout from './pages/superadmin/SuperadminComponents/SuperadminLayout';
 
