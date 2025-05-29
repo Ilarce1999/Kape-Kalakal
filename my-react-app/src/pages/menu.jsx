@@ -269,7 +269,9 @@ const Menu = ({ logoutUser }) => {
       fontSize: '1rem',
       color: '#fff',
     },
+    
   };
+  
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -300,8 +302,15 @@ const Menu = ({ logoutUser }) => {
           className="product-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)', 
-            gap: '20px', 
+            gridTemplateColumns:
+              window.innerWidth <= 480
+                ? '1fr'
+                : window.innerWidth <= 768
+                  ? '1fr 1fr'
+                  : window.innerWidth <= 1024
+                    ? '1fr 1fr 1fr'
+                    : '1fr 1fr 1fr 1fr',
+            gap: '20px',
           }}
         >
           {loading ? (

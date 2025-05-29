@@ -279,20 +279,32 @@ const Dashboard = () => {
     >
       <style>
         {`
-          @media (max-width: 768px) {
-          .hamburger {
-          display: flex !important;
-        }
+    /* Always keep nav-items horizontal */
+    .nav-items {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 20px !important;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+      padding-top: 0 !important;
+      scrollbar-width: none; /* Firefox */
+    }
+    .nav-items::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
 
-         .nav-items {
-          display: none;
-        }
+    /* Hide hamburger menu */
+    .hamburger {
+      display: none !important;
+    }
 
-         .nav-items.show {
-          display: flex !important;
-        }
+    /* Optional: reduce gap on small screens */
+    @media (max-width: 768px) {
+      .nav-items {
+        gap: 10px !important;
       }
-        `}
+    }
+  `}
       </style>
 
       <div style={{ position: 'relative', zIndex: 1 }}>
