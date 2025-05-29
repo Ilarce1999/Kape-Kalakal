@@ -53,7 +53,7 @@ const LandingPage = () => {
     <div style={styles.wrapper}>
       {isRoot ? (
         <div style={styles.card}>
-          <h2 style={styles.title}>Welcome to Kape Kalakal</h2>
+          <h2 style={styles.title}>Welcome to Kape Kalakals</h2>
           <Form method="get" action="/register">
             <button type="submit" style={styles.button}>Register</button>
           </Form>
