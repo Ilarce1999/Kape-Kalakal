@@ -4,10 +4,12 @@
   "description": "",
   "main": "index.js",
 "scripts": {
-  "setup-project": "npm i && cd client && npm i",
-  "server": "nodemon server",
+  "setup-project": "npm install && cd my-react-app && npm install",
+  "server": "nodemon src/server.js",
   "client": "cd my-react-app && npm run dev",
-  "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\""
+  "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
+  "build-client": "cd my-react-app && npm install && npm run build",
+  "start": "node src/server.js"
 },
   "keywords": [],
   "author": "",
