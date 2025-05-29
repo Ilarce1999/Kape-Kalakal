@@ -194,7 +194,7 @@ const ViewOrder = () => {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={styles.tableHeader}>Order ID's</th>
+                <th style={styles.tableHeader}>Order ID'ss</th>
                 <th style={styles.tableHeader}>Date</th>
                 <th style={styles.tableHeader}>Actions</th>
               </tr>
