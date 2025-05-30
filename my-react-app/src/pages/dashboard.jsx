@@ -12,13 +12,13 @@ import { toast } from 'react-toastify';
 
 const styles = {
   navbarWrapper: {
-    backgroundColor: '#5a3b22', // Same as AboutUs navbar background color
+    backgroundColor: '#5a3b22',
     width: '100%',
-    height: '70px', // Match the height with AboutUs navbar
+    height: '70px',
     position: 'fixed',
     top: 0,
     zIndex: 1000,
-    fontFamily: "'Playfair Display', serif", // Same font family
+    fontFamily: "'Playfair Display', serif",
   },
   navbar: {
     display: 'flex',
@@ -50,7 +50,21 @@ const styles = {
     display: 'flex',
     gap: '20px',
     alignItems: 'center',
-    paddingTop: '10px',
+    paddingTop: '0',
+  },
+  navItemsMobile: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    marginTop: '10px',
+    backgroundColor: '#5a3b22',
+    position: 'absolute',
+    top: '70px',
+    right: '0',
+    width: '100%',
+    padding: '10px 20px',
+    boxSizing: 'border-box',
+    zIndex: 999,
   },
   navItem: {
     color: 'white',
@@ -59,7 +73,6 @@ const styles = {
     textDecoration: 'none',
     cursor: 'pointer',
     transition: 'color 0.3s ease, background-color 0.3s ease',
-    padding: '5px 10px',
   },
   activeLink: {
     color: '#FFD700',
@@ -93,7 +106,8 @@ const styles = {
     justifyContent: 'center',
     gap: '40px',
     flexWrap: 'wrap',
-    padding: '60px 20px',
+    padding: '60px 20px 40px', // Add top padding to avoid navbar overlap (70px navbar + margin)
+    marginTop: '70px', // Push content below fixed navbar
   },
   box: {
     width: '600px',
@@ -109,10 +123,10 @@ const styles = {
   },
   boxDescription: {
     padding: '30px 25px',
-    backgroundColor: '#D2B48C', // Same background as AboutUs content
+    backgroundColor: '#D2B48C',
     fontFamily: "'Playfair Display', serif",
     fontSize: '1.2rem',
-    color: '#4B2E19', // Same text color as AboutUs content
+    color: '#4B2E19',
     textAlign: 'center',
   },
   menuButton: {
@@ -122,13 +136,13 @@ const styles = {
     backgroundColor: 'transparent',
     color: '#371D10',
     textDecoration: 'none',
-    border: '2px solid #8B4513', // Match the border color
+    border: '2px solid #8B4513',
     borderRadius: '8px',
     fontWeight: 'bold',
     transition: 'background-color 0.3s ease, color 0.3s ease',
   },
   footer: {
-    backgroundColor: '#5a3b22', // Same as AboutUs footer background color
+    backgroundColor: '#5a3b22',
     color: 'white',
     textAlign: 'center',
     padding: '20px 0',
@@ -150,6 +164,7 @@ const styles = {
     borderRadius: '5px',
     boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
     display: 'none',
+    minWidth: '120px',
   },
   dropdownItem: {
     padding: '5px 10px',
@@ -171,13 +186,14 @@ const styles = {
     gap: '5px',
   },
   hamburger: {
-    display: 'none',
+    display: 'none', // initially hidden, shown on mobile below
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
     width: '30px',
     height: '30px',
     cursor: 'pointer',
+    zIndex: 1100, // above nav-items mobile
   },
   bar: {
     height: '3px',
@@ -185,12 +201,6 @@ const styles = {
     backgroundColor: 'white',
     margin: '4px 0',
     borderRadius: '2px',
-  },
-  navItemsMobile: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    marginTop: '10px',
   },
   toast: {
     position: 'fixed',
@@ -268,6 +278,12 @@ const Dashboard = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  // Close mobile menu when navigation occurs
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setIsDropdownOpen(false);
+  }, [location.pathname]);
+
   return (
     <div
       style={{
@@ -279,32 +295,39 @@ const Dashboard = () => {
     >
       <style>
         {`
-    /* Always keep nav-items horizontal */
-    .nav-items {
-      display: flex !important;
-      flex-direction: row !important;
-      gap: 20px !important;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
-      padding-top: 0 !important;
-      scrollbar-width: none; /* Firefox */
-    }
-    .nav-items::-webkit-scrollbar {
-      display: none; /* Chrome, Safari, Opera */
-    }
+          /* Hide default scrollbar for nav items */
+          .nav-items::-webkit-scrollbar {
+            display: none;
+          }
+          .nav-items {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+          }
 
-    /* Hide hamburger menu */
-    .hamburger {
-      display: none !important;
-    }
-
-    /* Optional: reduce gap on small screens */
-    @media (max-width: 768px) {
-      .nav-items {
-        gap: 10px !important;
-      }
-    }
-  `}
+          /* Hamburger menu show on small screens */
+          @media (max-width: 768px) {
+            .nav-items {
+              display: none !important;
+            }
+            .nav-items.mobile-show {
+              display: flex !important;
+              flex-direction: column !important;
+              gap: 10px !important;
+              margin-top: 10px !important;
+              background-color: #5a3b22 !important;
+              position: absolute !important;
+              top: 70px !important;
+              right: 0 !important;
+              width: 100% !important;
+              padding: 10px 20px !important;
+              box-sizing: border-box !important;
+              z-index: 999 !important;
+            }
+            .hamburger {
+              display: flex !important;
+            }
+          }
+        `}
       </style>
 
       <div style={{ position: 'relative', zIndex: 1 }}>
@@ -319,6 +342,12 @@ const Dashboard = () => {
               className="hamburger"
               style={styles.hamburger}
               onClick={toggleMobileMenu}
+              aria-label="Toggle menu"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') toggleMobileMenu();
+              }}
             >
               <div style={styles.bar}></div>
               <div style={styles.bar}></div>
@@ -326,8 +355,8 @@ const Dashboard = () => {
             </div>
 
             <div
-              className={`nav-items ${mobileMenuOpen ? 'show' : ''}`}
-              style={{ ...styles.navItems }}
+              className={`nav-items ${mobileMenuOpen ? 'mobile-show' : ''}`}
+              style={styles.navItems}
             >
               <Link to="/dashboard" style={getLinkStyle('/dashboard')}>
                 HOME
@@ -345,9 +374,9 @@ const Dashboard = () => {
                 SETTINGS
               </Link>
               <div style={styles.dropdown} onClick={toggleDropdown}>
-                <button style={styles.dropdownButton}>
+                <button style={styles.dropdownButton} aria-haspopup="true" aria-expanded={isDropdownOpen}>
                   <span>{user?.name}</span>
-                  <span style={styles.icon}>▼</span>
+                  <span style={{ marginLeft: '5px' }}>▼</span>
                 </button>
                 <div
                   style={{
@@ -356,20 +385,26 @@ const Dashboard = () => {
                   }}
                 >
                   <div
-                    style={{
-                      ...styles.dropdownMenu,
-                      ...(isDropdownOpen ? styles.dropdownShow : {}),
+                    style={styles.dropdownItem}
+                    onClick={() => navigate('/profile')}
+                    role="menuitem"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') navigate('/profile');
                     }}
                   >
-                    <div
-                      style={styles.dropdownItem}
-                      onClick={() => navigate('/profile')}
-                    >
-                      Profile
-                    </div>
-                    <div style={styles.dropdownItem} onClick={logoutUser}>
-                      Logout
-                    </div>
+                    Profile
+                  </div>
+                  <div
+                    style={styles.dropdownItem}
+                    onClick={logoutUser}
+                    role="menuitem"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') logoutUser();
+                    }}
+                  >
+                    Logout
                   </div>
                 </div>
               </div>
@@ -415,7 +450,6 @@ const Dashboard = () => {
           </div>
         </div>
         <Outlet />
-
       </div>
 
       {toastVisible && (

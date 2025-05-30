@@ -3,8 +3,8 @@ import { useNavigate, useLoaderData } from 'react-router-dom';
 import { FaShoppingCart } from 'react-icons/fa';
 import customFetch from '../../../utils/customFetch.js';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
-import 'react-toastify/dist/ReactToastify.css'; // Import styles for toast
+import { ToastContainer, toast } from 'react-toastify'; 
+import 'react-toastify/dist/ReactToastify.css';
 
 export const loader = async () => {
   try {
@@ -26,10 +26,13 @@ const Menu = ({ logoutUser }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [modalProduct, setModalProduct] = useState(null);
+  const [modalProduct, setModalProduct] = useState(null); // will be used for modal
   const [searchTerm, setSearchTerm] = useState('');
   const [stockError, setStockError] = useState('');
   const [quantities, setQuantities] = useState({});
+
+  // Hover state for product cards (to apply scale on hover)
+  const [hoveredProductId, setHoveredProductId] = useState(null);
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
@@ -66,13 +69,13 @@ const Menu = ({ logoutUser }) => {
   const calculateTotal = (basePrice, quantity) => basePrice * quantity;
 
   const handleAddToCartClick = (product) => {
-    setModalProduct(product);
+    setModalProduct(null); // close modal if open
     setStockError('');
+    // Add to cart immediately removed — now add via confirmAddToCart modal button
   };
 
-  const confirmAddToCart = async () => {
-    if (!modalProduct) return;
-    const product = modalProduct;
+  const confirmAddToCart = async (product) => {
+    if (!product) return;
     const quantity = quantities[product._id] || 1;
 
     if (product.stock < quantity) {
@@ -110,15 +113,12 @@ const Menu = ({ logoutUser }) => {
       setOrderDetails(updatedOrders);
       localStorage.setItem('orderDetails', JSON.stringify(updatedOrders));
 
-      // Show success toast notification
       toast.success(`${product.name} added to cart!`);
-
-      // Update cart count in Navbar or globally
       window.dispatchEvent(new Event('cartUpdated'));
 
       setStockError('');
       setQuantities((prev) => ({ ...prev, [product._id]: 1 }));
-      setModalProduct(null);
+      setModalProduct(null); // close modal
     } catch (error) {
       setStockError('Failed to update stock');
     }
@@ -128,7 +128,6 @@ const Menu = ({ logoutUser }) => {
     setQuantities((prev) => {
       const currentQuantity = prev[productId] || 1;
       const productStock = products.find(p => p._id === productId)?.stock || 1;
-
       if (currentQuantity < productStock) {
         return { ...prev, [productId]: currentQuantity + 1 };
       }
@@ -175,7 +174,7 @@ const Menu = ({ logoutUser }) => {
       flexDirection: 'column',
       minHeight: '100vh',
       backgroundColor: '#2c1b0b',
-      paddingTop: '60px', // <-- add this to push content down
+      paddingTop: '60px',
     },
     cartWrapper: { position: 'relative', cursor: 'pointer' },
     cartIcon: { fontSize: '20px', color: 'white' },
@@ -197,6 +196,13 @@ const Menu = ({ logoutUser }) => {
       transition: 'transform 0.3s ease',
       display: 'flex',
       flexDirection: 'column',
+      cursor: 'pointer',
+    },
+    productCardHovered: {
+      transform: 'scale(1.05)', // enlarge on hover
+      boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.2)',
+      zIndex: 2,
+      position: 'relative',
     },
     productImage: {
       width: '100%',
@@ -269,13 +275,103 @@ const Menu = ({ logoutUser }) => {
       fontSize: '1rem',
       color: '#fff',
     },
-    
+    modalOverlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    },
+    modalContent: {
+      backgroundColor: 'white',
+      padding: '20px',
+      borderRadius: '10px',
+      maxWidth: '600px',
+      width: '90%',
+      maxHeight: '80vh',
+      overflowY: 'auto',
+      position: 'relative',
+    },
+    modalImage: {
+      width: '100%',
+      maxHeight: '300px',
+      objectFit: 'contain',
+      borderRadius: '10px',
+    },
+    modalCloseButton: {
+      position: 'absolute',
+      top: '10px',
+      right: '15px',
+      background: 'none',
+      border: 'none',
+      fontSize: '1.5rem',
+      cursor: 'pointer',
+      fontWeight: 'bold',
+    },
   };
-  
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Modal component inside Menu for simplicity
+  const ProductModal = ({ product, onClose }) => {
+    if (!product) return null;
+
+    return (
+      <div style={styles.modalOverlay} onClick={onClose}>
+        <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <button style={styles.modalCloseButton} onClick={onClose} aria-label="Close Modal">&times;</button>
+          <img
+            src={`http://localhost:5200/${product.image}`}
+            alt={product.name}
+            style={styles.modalImage}
+          />
+          <h2>{product.name}</h2>
+          <p>{product.description}</p>
+          <p><strong>Price:</strong> ₱{product.price}</p>
+          <p><strong>Stock:</strong> {product.stock}</p>
+
+          <div style={styles.quantityControls}>
+            <button
+              style={styles.quantityButton}
+              onClick={() => handleQuantityDecrease(product._id)}
+              disabled={(quantities[product._id] || 1) <= 1}
+            >
+              -
+            </button>
+            <input
+              type="number"
+              value={quantities[product._id] || 1}
+              onChange={(e) => handleInputChange(e, product._id)}
+              style={styles.quantityInput}
+              min="1"
+              max={product.stock}
+            />
+            <button
+              style={styles.quantityButton}
+              onClick={() => handleQuantityIncrease(product._id)}
+              disabled={(quantities[product._id] || 1) >= product.stock}
+            >
+              +
+            </button>
+          </div>
+
+          <button
+            style={{ ...styles.productButton, marginTop: '15px', width: '100%' }}
+            onClick={() => confirmAddToCart(product)}
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div style={styles.pageWrapper}>
@@ -321,8 +417,13 @@ const Menu = ({ logoutUser }) => {
             filteredProducts.map((product) => (
               <div
                 key={product._id}
-                style={styles.productCard}
-                onClick={() => handleAddToCartClick(product)}
+                style={{
+                  ...styles.productCard,
+                  ...(hoveredProductId === product._id ? styles.productCardHovered : {}),
+                }}
+                onMouseEnter={() => setHoveredProductId(product._id)}
+                onMouseLeave={() => setHoveredProductId(null)}
+                onClick={() => setModalProduct(product)} // Open modal on card click
               >
                 <img
                   src={`http://localhost:5200/${product.image}`}
@@ -337,11 +438,14 @@ const Menu = ({ logoutUser }) => {
                     <div style={styles.productPrice}>₱{product.price}</div>
                   </div>
 
-                  <div style={styles.quantityControls}>
+                  <div
+                    style={styles.quantityControls}
+                    onClick={(e) => e.stopPropagation()} // Prevent modal opening when clicking qty controls
+                  >
                     <button
                       style={styles.quantityButton}
                       onClick={() => handleQuantityDecrease(product._id)}
-                      disabled={(quantities[product._id] || 1) <= 1} // disable if quantity is 1
+                      disabled={(quantities[product._id] || 1) <= 1}
                     >
                       -
                     </button>
@@ -376,6 +480,14 @@ const Menu = ({ logoutUser }) => {
             ))
           )}
         </div>
+
+        {/* Product modal */}
+        {modalProduct && (
+          <ProductModal
+            product={modalProduct}
+            onClose={() => setModalProduct(null)}
+          />
+        )}
 
         {/* Toast Notification */}
         <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
